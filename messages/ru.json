@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "title": "Космические часы",
+    "tagline": "Celestial Map Engine"
+  },
+  "nav": {
+    "home": "Главная",
+    "login": "Войти",
+    "logout": "Выйти",
+    "cards": "Карты"
+  },
+  "home": {
+    "headline": "Космические часы",
+    "subtitle": "Каркас с i18n и заглушкой авторизации. Прототип — в CCLOCK.",
+    "ctaCards": "К картам",
+    "ctaLogin": "Войти (заглушка)",
+    "status": "Без БД — карты позже в памяти / localStorage."
+  },
+  "auth": {
+    "title": "Вход",
+    "email": "Email",
+    "password": "Пароль",
+    "submit": "Продолжить",
+    "hint": "Пока заглушка. Auth.js + Postgres — когда UI устаканится.",
+    "demoUser": "Демо-сессия"
+  },
+  "cards": {
+    "title": "Ваши карты",
+    "add": "Добавить карту",
+    "empty": "Карт пока нет",
+    "comingSoon": "Сетку часов перенесём сюда из дизайн-прототипа."
+  }
+}

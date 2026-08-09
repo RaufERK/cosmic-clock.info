@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "title": "Relógio Cósmico",
+    "tagline": "Celestial Map Engine"
+  },
+  "nav": {
+    "home": "Início",
+    "login": "Entrar",
+    "logout": "Sair",
+    "cards": "Cartas"
+  },
+  "home": {
+    "headline": "Relógio Cósmico",
+    "subtitle": "Esqueleto com i18n e auth provisória. O protótipo está em CCLOCK.",
+    "ctaCards": "Ver cartas",
+    "ctaLogin": "Entrar (stub)",
+    "status": "Sem BD ainda — as cartas virão depois."
+  },
+  "auth": {
+    "title": "Entrar",
+    "email": "Email",
+    "password": "Senha",
+    "submit": "Continuar",
+    "hint": "Apenas stub. Auth.js + Postgres quando o UI estabilizar.",
+    "demoUser": "Sessão demo"
+  },
+  "cards": {
+    "title": "Suas cartas",
+    "add": "Adicionar carta",
+    "empty": "Ainda sem cartas",
+    "comingSoon": "A grelha do relógio virá do protótipo de design."
+  }
+}

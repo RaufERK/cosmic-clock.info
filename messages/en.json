@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "title": "Cosmic Clock",
+    "tagline": "Celestial Map Engine"
+  },
+  "nav": {
+    "home": "Home",
+    "login": "Sign in",
+    "logout": "Sign out",
+    "cards": "Cards"
+  },
+  "home": {
+    "headline": "Cosmic Clock",
+    "subtitle": "Design scaffold with i18n and auth stub. Prototype stays in CCLOCK.",
+    "ctaCards": "Open cards",
+    "ctaLogin": "Sign in (stub)",
+    "status": "No database yet — cards live in memory / localStorage later."
+  },
+  "auth": {
+    "title": "Sign in",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Continue",
+    "hint": "Stub only. Real Auth.js + Postgres comes after UI settles.",
+    "demoUser": "Demo session"
+  },
+  "cards": {
+    "title": "Your cards",
+    "add": "Add card",
+    "empty": "No cards yet",
+    "comingSoon": "Clock grid UI will land here from the design prototype."
+  }
+}
