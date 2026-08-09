@@ -32,8 +32,7 @@ module.exports = {
       user: DEPLOY_USER,
       host: DEPLOY_HOST,
       ref: 'origin/main',
-      // TODO: replace after creating GitHub repo
-      repo: 'git@github.com:RaufERK/cosmic-clock.git',
+      repo: 'git@github.com:RaufERK/cosmic-clock.info.git',
       path: DEPLOY_PATH,
       'pre-deploy-local': '',
       'post-deploy': [
