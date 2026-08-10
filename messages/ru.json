@@ -3,34 +3,42 @@
     "title": "Космические часы",
     "tagline": "Celestial Map Engine"
   },
-  "nav": {
-    "home": "Главная",
-    "login": "Войти",
+  "app": {
+    "title": "Космические часы",
+    "addCard": "Добавить карту",
+    "login": "Вход",
+    "register": "Регистрация",
     "logout": "Выйти",
-    "cards": "Карты"
-  },
-  "home": {
-    "headline": "Космические часы",
-    "subtitle": "Каркас с i18n и заглушкой авторизации. Прототип — в CCLOCK.",
-    "ctaCards": "К картам",
-    "ctaLogin": "Войти (заглушка)",
-    "status": "Без БД — карты позже в памяти / localStorage.",
-    "previewLabel": "Превью часов",
-    "previewHint": "Этап B — стрелки год / месяц / день на примерах (та же математика, что в CCLOCK).",
-    "previewLegend": "Год → {yearHour}ч · Месяц → {monthHour}ч"
-  },
-  "auth": {
-    "title": "Вход",
+    "labelName": "Название",
+    "labelDay": "Число",
+    "labelMonth": "Месяц",
+    "labelYear": "Год",
+    "done": "Готово",
+    "deleteCard": "Удалить карту",
+    "namePlaceholder": "Введите имя",
     "email": "Email",
     "password": "Пароль",
-    "submit": "Продолжить",
-    "hint": "Пока заглушка. Auth.js + Postgres — когда UI устаканится.",
-    "demoUser": "Демо-сессия"
-  },
-  "cards": {
-    "title": "Ваши карты",
-    "add": "Добавить карту",
-    "empty": "Карт пока нет",
-    "comingSoon": "Сетку часов перенесём сюда из дизайн-прототипа."
+    "confirmPassword": "Повторите пароль",
+    "haveAccount": "Уже есть аккаунт?",
+    "noAccount": "Нет аккаунта?",
+    "months": [
+      "Января",
+      "Февраля",
+      "Марта",
+      "Апреля",
+      "Мая",
+      "Июня",
+      "Июля",
+      "Августа",
+      "Сентября",
+      "Октября",
+      "Ноября",
+      "Декабря"
+    ],
+    "legendYear": "год",
+    "legendMonth": "месяц",
+    "legendHour": "час",
+    "footer": "Celestial Map Engine • 2026",
+    "loading": "Загрузка…"
   }
 }

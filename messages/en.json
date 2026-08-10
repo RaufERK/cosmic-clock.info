@@ -1,36 +1,44 @@
 {
   "meta": {
-    "title": "Cosmic Clock",
+    "title": "Cosmic Clocks",
     "tagline": "Celestial Map Engine"
   },
-  "nav": {
-    "home": "Home",
-    "login": "Sign in",
-    "logout": "Sign out",
-    "cards": "Cards"
-  },
-  "home": {
-    "headline": "Cosmic Clock",
-    "subtitle": "Design scaffold with i18n and auth stub. Prototype stays in CCLOCK.",
-    "ctaCards": "Open cards",
-    "ctaLogin": "Sign in (stub)",
-    "status": "No database yet — cards live in memory / localStorage later.",
-    "previewLabel": "Clock preview",
-    "previewHint": "Stage B — year / month / day hands from sample dates (same math as CCLOCK).",
-    "previewLegend": "Year → {yearHour}h · Month → {monthHour}h"
-  },
-  "auth": {
-    "title": "Sign in",
+  "app": {
+    "title": "Cosmic Clocks",
+    "addCard": "Add Card",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Log out",
+    "labelName": "Name",
+    "labelDay": "Day",
+    "labelMonth": "Month",
+    "labelYear": "Year",
+    "done": "Done",
+    "deleteCard": "Delete card",
+    "namePlaceholder": "Enter name",
     "email": "Email",
     "password": "Password",
-    "submit": "Continue",
-    "hint": "Stub only. Real Auth.js + Postgres comes after UI settles.",
-    "demoUser": "Demo session"
-  },
-  "cards": {
-    "title": "Your cards",
-    "add": "Add card",
-    "empty": "No cards yet",
-    "comingSoon": "Clock grid UI will land here from the design prototype."
+    "confirmPassword": "Confirm password",
+    "haveAccount": "Already have an account?",
+    "noAccount": "Don't have an account?",
+    "months": [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December"
+    ],
+    "legendYear": "Year",
+    "legendMonth": "Month",
+    "legendHour": "h.",
+    "footer": "Celestial Map Engine • 2026",
+    "loading": "Loading…"
   }
 }

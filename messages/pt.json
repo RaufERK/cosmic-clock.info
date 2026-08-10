@@ -1,36 +1,44 @@
 {
   "meta": {
-    "title": "Relógio Cósmico",
+    "title": "Relógios Cósmicos",
     "tagline": "Celestial Map Engine"
   },
-  "nav": {
-    "home": "Início",
+  "app": {
+    "title": "Relógios Cósmicos",
+    "addCard": "Adicionar carta",
     "login": "Entrar",
+    "register": "Registrar",
     "logout": "Sair",
-    "cards": "Cartas"
-  },
-  "home": {
-    "headline": "Relógio Cósmico",
-    "subtitle": "Esqueleto com i18n e auth provisória. O protótipo está em CCLOCK.",
-    "ctaCards": "Ver cartas",
-    "ctaLogin": "Entrar (stub)",
-    "status": "Sem BD ainda — as cartas virão depois.",
-    "previewLabel": "Pré-visualização do relógio",
-    "previewHint": "Etapa B — ponteiros ano / mês / dia com datas de exemplo (mesma matemática do CCLOCK).",
-    "previewLegend": "Ano → {yearHour}h · Mês → {monthHour}h"
-  },
-  "auth": {
-    "title": "Entrar",
+    "labelName": "Nome",
+    "labelDay": "Dia",
+    "labelMonth": "Mês",
+    "labelYear": "Ano",
+    "done": "Pronto",
+    "deleteCard": "Excluir carta",
+    "namePlaceholder": "Digite o nome",
     "email": "Email",
     "password": "Senha",
-    "submit": "Continuar",
-    "hint": "Apenas stub. Auth.js + Postgres quando o UI estabilizar.",
-    "demoUser": "Sessão demo"
-  },
-  "cards": {
-    "title": "Suas cartas",
-    "add": "Adicionar carta",
-    "empty": "Ainda sem cartas",
-    "comingSoon": "A grelha do relógio virá do protótipo de design."
+    "confirmPassword": "Confirmar senha",
+    "haveAccount": "Já tem uma conta?",
+    "noAccount": "Não tem uma conta?",
+    "months": [
+      "Janeiro",
+      "Fevereiro",
+      "Março",
+      "Abril",
+      "Maio",
+      "Junho",
+      "Julho",
+      "Agosto",
+      "Setembro",
+      "Outubro",
+      "Novembro",
+      "Dezembro"
+    ],
+    "legendYear": "Ano",
+    "legendMonth": "Mês",
+    "legendHour": "h.",
+    "footer": "Celestial Map Engine • 2026",
+    "loading": "A carregar…"
   }
 }

@@ -34,7 +34,10 @@ npm i
 npm run dev
 ```
 
-Open http://localhost:3060/en
+Open http://localhost:3000/en (or `/ru`)
+
+Local dev uses the default Next port **3000**.  
+Production on amster still binds **3060** (PM2 / nginx) — see `ecosystem.config.cjs`.
 
 Optional local Postgres (port **5433**):
 

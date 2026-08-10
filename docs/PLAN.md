@@ -69,45 +69,38 @@ No OAuth (Google etc.) in v1 unless we add it later on purpose.
 
 ## Stage B — CosmicClock component (no cards page yet)
 
-**Goal:** pure clock UI + hand math, ported from `CCLOCK`, with i18n-ready legend later.
+**Goal:** pure clock UI + hand math, ported from `CCLOCK`.
 
 - [x] Port `CosmicClock` into `src/components/`
 - [x] Year / month / day hand math matches prototype (`src/lib/cosmic-clock-math.ts`)
-- [x] Small preview on home (`ClockPreview` + sample dates)
+- [x] Preview existed briefly; replaced by full UI in Stage C
 - [x] No DB, no auth changes
-- [ ] Waiting for your visual check + commit
-
-**You check**
-
-- [ ] Hands move correctly for known dates (e.g. 15.05.1995, 12.02.2026)
-- [ ] Looks close to `CCLOCK` clock
-- [ ] `npm run build` (or at least `npm run lint`) OK
-- [ ] Preview copy OK in en / ru / es / pt
-
-**Commit when:** you say the clock looks good.
+- [x] Committed
 
 ---
 
-## Stage C — Cards UI (client-only)
+## Stage C — Full CCLOCK UI port (replace stub)
 
-**Goal:** main product surface like the prototype, still without Postgres.
+**Goal:** the Next app looks and behaves like `CCLOCK/` (single screen). Stub marketing/header/login pages removed.
 
-- [ ] Cards grid on `/[locale]/cards`
-- [ ] Create / edit / delete card (name + day/month/year)
-- [ ] Each card shows `CosmicClock`
-- [ ] Client state or `localStorage` (temporary OK)
-- [ ] Soft UX: empty state, add tile
-- [ ] All new strings in **all four** `messages/*` files
-- [ ] Visual pass vs `CCLOCK` (layout, not pixel-perfect stress)
+- [x] Port main shell (nav + arched title + starfield + footer)
+- [x] Port cards grid: view / create / edit / delete
+- [x] Port `CardForm` + `AuthModal` (demo session still)
+- [x] Strings from prototype in all four `messages/*`
+- [x] `/cards` and `/login` redirect to home (single-screen prototype)
+- [x] Local `npm run dev` on port **3000** (prod stays 3060)
+- [x] Visual check OK vs `CCLOCK`
+- [x] Committed
 
 **You check**
 
-- [ ] Full CRUD without reload bugs (or documented localStorage restore)
-- [ ] Switch `en` ↔ `ru` ↔ `es` ↔ `pt` — no missing keys
-- [ ] Demo login still works with header
-- [ ] Limit **not** required yet (mention in UI later)
+- [x] http://localhost:3000/ru matches prototype layout
+- [x] Language switcher RU/EN/ES/PT works
+- [x] Add / edit / delete cards; clocks on cards
+- [x] Login / register modal works (demo)
 
-**Commit when:** you are happy with the cards UX.
+**Commit when:** you say the UI matches the prototype well enough.  
+**Status:** done.
 
 ---
 
@@ -221,7 +214,7 @@ No OAuth (Google etc.) in v1 unless we add it later on purpose.
 
 ## Current position
 
-**Done:** Stage A (committed `c0e8ba2`).  
-**Waiting on you:** **Stage B** — CosmicClock on home preview. Check visually, then ask for the Stage B commit.
+**Done:** Stage A, B, C.  
+**Next:** **Stage D** — Prisma + schema (local Postgres).
 
-When Stage B is verified and committed, next is **Stage C** (cards UI).
+Say when to start D.
