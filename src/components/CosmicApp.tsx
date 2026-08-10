@@ -3,14 +3,13 @@
 import { useEffect, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { LogOut, Plus, Settings } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useLocale, useTranslations } from "next-intl";
 import { AuthModal } from "@/components/AuthModal";
 import { CardForm, type CardFormValues } from "@/components/CardForm";
 import { CosmicClock } from "@/components/CosmicClock";
 import { Link, usePathname } from "@/i18n/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
-import { logoutAction } from "@/lib/auth-actions";
 import {
   createCardAction,
   deleteCardAction,
@@ -217,8 +216,7 @@ export function CosmicApp() {
 
   function onLogout() {
     startLogout(async () => {
-      await logoutAction();
-      await update();
+      await signOut({ redirect: false });
     });
   }
 

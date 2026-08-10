@@ -1,7 +1,7 @@
 "use server";
 
 import { AuthError } from "next-auth";
-import { signIn, signOut } from "@/auth";
+import { signIn } from "@/auth";
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
 
@@ -85,13 +85,4 @@ export async function loginAction(
   }
 
   return signInCredentials(email, password);
-}
-
-export async function logoutAction(): Promise<void> {
-  try {
-    await signOut({ redirect: false });
-  } catch (error) {
-    if (isNextRedirect(error)) return;
-    throw error;
-  }
 }

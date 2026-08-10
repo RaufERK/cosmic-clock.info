@@ -7,6 +7,8 @@
   --muted: rgba(255, 255, 255, 0.55);
   --glass: rgba(255, 255, 255, 0.03);
   --glass-border: rgba(255, 255, 255, 0.1);
+  /* Match CCLOCK (Georgia). Slightly larger root so rem utilities read bigger. */
+  --font-body: Georgia, "Times New Roman", Times, serif;
 }
 
 @theme inline {
@@ -16,11 +18,20 @@
   --color-muted: var(--muted);
   --color-glass: var(--glass);
   --color-glass-border: var(--glass-border);
-  --font-sans: var(--font-display);
+  --font-sans: var(--font-body);
+}
+
+/*
+  Central type scale: Tailwind text-* uses rem.
+  Default browser root is 16px; bump so UI matches the heavier prototype look.
+  The arched SVG title uses fixed px and stays as-is.
+*/
+html {
+  font-size: 18px;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-display), Georgia, "Times New Roman", serif;
+  font-family: var(--font-body);
 }

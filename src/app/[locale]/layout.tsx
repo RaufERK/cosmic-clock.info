@@ -2,17 +2,9 @@ import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Cormorant_Garamond } from "next/font/google";
 import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 import { routing } from "@/i18n/routing";
 import "../globals.css";
-
-const display = Cormorant_Garamond({
-  subsets: ["latin", "latin-ext", "cyrillic"],
-  weight: ["400", "600", "700"],
-  variable: "--font-display",
-  display: "swap",
-});
 
 type Props = {
   children: React.ReactNode;
@@ -47,7 +39,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className={`${display.variable} h-full`}>
+    <html lang={locale} className="h-full">
       <body className="min-h-full antialiased">
         <NextIntlClientProvider messages={messages}>
           <AuthSessionProvider>{children}</AuthSessionProvider>
