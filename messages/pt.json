@@ -14,7 +14,10 @@
     "subtitle": "Esqueleto com i18n e auth provisória. O protótipo está em CCLOCK.",
     "ctaCards": "Ver cartas",
     "ctaLogin": "Entrar (stub)",
-    "status": "Sem BD ainda — as cartas virão depois."
+    "status": "Sem BD ainda — as cartas virão depois.",
+    "previewLabel": "Pré-visualização do relógio",
+    "previewHint": "Etapa B — ponteiros ano / mês / dia com datas de exemplo (mesma matemática do CCLOCK).",
+    "previewLegend": "Ano → {yearHour}h · Mês → {monthHour}h"
   },
   "auth": {
     "title": "Entrar",

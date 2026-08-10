@@ -14,7 +14,10 @@
     "subtitle": "Каркас с i18n и заглушкой авторизации. Прототип — в CCLOCK.",
     "ctaCards": "К картам",
     "ctaLogin": "Войти (заглушка)",
-    "status": "Без БД — карты позже в памяти / localStorage."
+    "status": "Без БД — карты позже в памяти / localStorage.",
+    "previewLabel": "Превью часов",
+    "previewHint": "Этап B — стрелки год / месяц / день на примерах (та же математика, что в CCLOCK).",
+    "previewLegend": "Год → {yearHour}ч · Месяц → {monthHour}ч"
   },
   "auth": {
     "title": "Вход",

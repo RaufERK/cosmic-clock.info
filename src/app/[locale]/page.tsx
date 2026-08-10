@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { ClockPreview } from "@/components/ClockPreview";
 import { Link } from "@/i18n/navigation";
 
 type Props = {
@@ -36,6 +37,8 @@ export default async function HomePage({ params }: Props) {
           {t("ctaLogin")}
         </Link>
       </div>
+
+      <ClockPreview />
     </section>
   );
 }

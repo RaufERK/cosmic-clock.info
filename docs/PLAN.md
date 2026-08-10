@@ -71,18 +71,20 @@ No OAuth (Google etc.) in v1 unless we add it later on purpose.
 
 **Goal:** pure clock UI + hand math, ported from `CCLOCK`, with i18n-ready legend later.
 
-- [ ] Port `CosmicClock` into `src/components/`
-- [ ] Year / month / day hand math matches prototype
-- [ ] Small preview on a temp page **or** Story-less manual check on home/dev
-- [ ] No DB, no auth changes
+- [x] Port `CosmicClock` into `src/components/`
+- [x] Year / month / day hand math matches prototype (`src/lib/cosmic-clock-math.ts`)
+- [x] Small preview on home (`ClockPreview` + sample dates)
+- [x] No DB, no auth changes
+- [ ] Waiting for your visual check + commit
 
 **You check**
 
 - [ ] Hands move correctly for known dates (e.g. 15.05.1995, 12.02.2026)
 - [ ] Looks close to `CCLOCK` clock
 - [ ] `npm run build` (or at least `npm run lint`) OK
+- [ ] Preview copy OK in en / ru / es / pt
 
-**Commit when:** clock alone is good.
+**Commit when:** you say the clock looks good.
 
 ---
 
@@ -219,7 +221,7 @@ No OAuth (Google etc.) in v1 unless we add it later on purpose.
 
 ## Current position
 
-**Done:** Stage A.  
-**In progress / next:** **Stage B** — CosmicClock component only.
+**Done:** Stage A (committed `c0e8ba2`).  
+**Waiting on you:** **Stage B** — CosmicClock on home preview. Check visually, then ask for the Stage B commit.
 
-When you say the next open stage is verified, we commit and continue.
+When Stage B is verified and committed, next is **Stage C** (cards UI).

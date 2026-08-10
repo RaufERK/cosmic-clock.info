@@ -14,7 +14,10 @@
     "subtitle": "Design scaffold with i18n and auth stub. Prototype stays in CCLOCK.",
     "ctaCards": "Open cards",
     "ctaLogin": "Sign in (stub)",
-    "status": "No database yet — cards live in memory / localStorage later."
+    "status": "No database yet — cards live in memory / localStorage later.",
+    "previewLabel": "Clock preview",
+    "previewHint": "Stage B — year / month / day hands from sample dates (same math as CCLOCK).",
+    "previewLegend": "Year → {yearHour}h · Month → {monthHour}h"
   },
   "auth": {
     "title": "Sign in",

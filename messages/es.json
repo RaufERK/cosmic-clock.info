@@ -14,7 +14,10 @@
     "subtitle": "Base con i18n y auth provisional. El prototipo está en CCLOCK.",
     "ctaCards": "Ver cartas",
     "ctaLogin": "Entrar (stub)",
-    "status": "Sin base de datos aún — las cartas vendrán después."
+    "status": "Sin base de datos aún — las cartas vendrán después.",
+    "previewLabel": "Vista previa del reloj",
+    "previewHint": "Etapa B — manecillas año / mes / día con fechas de ejemplo (misma matemática que CCLOCK).",
+    "previewLegend": "Año → {yearHour}h · Mes → {monthHour}h"
   },
   "auth": {
     "title": "Iniciar sesión",
