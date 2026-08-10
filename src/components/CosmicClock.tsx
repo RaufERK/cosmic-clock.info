@@ -2,16 +2,20 @@
 
 import { motion } from "motion/react";
 import {
-  dayHandRotation,
+  civilDate,
+  computeHandRotations,
   getSector,
-  monthHandRotation,
-  yearHandRotation,
+  todayCivil,
+  type CivilDate,
 } from "@/lib/cosmic-clock-math";
 
 export type CosmicClockProps = {
+  /** Start date of the life-event (card). */
   day: number;
   month: number;
   year: number;
+  /** Reference moment; defaults to today. */
+  asOf?: CivilDate;
   size?: number;
 };
 
@@ -22,11 +26,12 @@ export function CosmicClock({
   day,
   month,
   year,
+  asOf = todayCivil(),
   size = 180,
 }: CosmicClockProps) {
-  const hourRotation = yearHandRotation(year);
-  const minuteRotation = monthHandRotation(month);
-  const secondRotation = dayHandRotation(day);
+  const start = civilDate(year, month, day);
+  const { year: hourRotation, month: minuteRotation, day: secondRotation } =
+    computeHandRotations(start, asOf);
 
   const hourSector = getSector(hourRotation);
   const minuteSector = getSector(minuteRotation);
@@ -206,6 +211,7 @@ export function CosmicClock({
         })}
       </svg>
 
+      {/* Year hand — thick / short */}
       <motion.div
         initial={{ rotate: 0 }}
         animate={{ rotate: hourRotation }}
@@ -218,6 +224,7 @@ export function CosmicClock({
         }}
       />
 
+      {/* Month hand — medium */}
       <motion.div
         initial={{ rotate: 0 }}
         animate={{ rotate: minuteRotation }}
@@ -230,6 +237,7 @@ export function CosmicClock({
         }}
       />
 
+      {/* Day hand — thin */}
       <motion.div
         initial={{ rotate: 0 }}
         animate={{ rotate: secondRotation }}

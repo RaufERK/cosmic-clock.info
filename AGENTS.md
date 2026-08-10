@@ -17,6 +17,7 @@ Read these before changing product behavior or structure:
 | [`docs/PRODUCT.md`](docs/PRODUCT.md) | Vision, Card domain, clock hand mapping |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Stack, folders, constraints, data sketch |
 | [`docs/PLAN.md`](docs/PLAN.md) | **Living checkbox plan** — one stage at a time |
+| [`docs/CLOCK_MATH.md`](docs/CLOCK_MATH.md) | Prophet Cosmic Clock hand theory & formulas |
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | Short stage map |
 | [`docs/INFRA.md`](docs/INFRA.md) | SSH hosts, server Postgres, local Docker DB |
 

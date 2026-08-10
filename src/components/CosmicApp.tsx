@@ -23,9 +23,9 @@ import {
   isExampleCardId,
 } from "@/lib/cards";
 import {
+  civilDate,
+  computeHandRotations,
   getHandHour,
-  monthHandRotation,
-  yearHandRotation,
 } from "@/lib/cosmic-clock-math";
 
 const LOCALE_ORDER: AppLocale[] = ["ru", "en", "es", "pt"];
@@ -352,7 +352,11 @@ export function CosmicApp() {
             }`}
           >
             <AnimatePresence mode="popLayout">
-              {cards.map((card) => (
+              {cards.map((card) => {
+                const hands = computeHandRotations(
+                  civilDate(card.year, card.month, card.day),
+                );
+                return (
                 <motion.div
                   key={card.id}
                   layout
@@ -401,8 +405,7 @@ export function CosmicApp() {
                               <span className="font-bold text-white/60">
                                 {t("legendYear")}:
                               </span>{" "}
-                              {getHandHour(yearHandRotation(card.year))}{" "}
-                              {t("legendHour")}
+                              {getHandHour(hands.year)} {t("legendHour")}
                             </p>
                           </div>
                           <div className="flex items-center gap-2">
@@ -411,8 +414,7 @@ export function CosmicApp() {
                               <span className="font-bold text-white/60">
                                 {t("legendMonth")}:
                               </span>{" "}
-                              {getHandHour(monthHandRotation(card.month))}{" "}
-                              {t("legendHour")}
+                              {getHandHour(hands.month)} {t("legendHour")}
                             </p>
                           </div>
                         </div>
@@ -427,7 +429,8 @@ export function CosmicApp() {
                     </motion.div>
                   )}
                 </motion.div>
-              ))}
+                );
+              })}
 
               <motion.div layout className="h-[580px]">
                 {isAdding && isLoggedIn ? (
