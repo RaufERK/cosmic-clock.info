@@ -1,14 +1,19 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { X } from "lucide-react";
 import { useTranslations } from "next-intl";
+import {
+  loginAction,
+  registerAction,
+  type AuthActionResult,
+} from "@/lib/auth-actions";
 
 type Props = {
   mode: "login" | "register";
   onClose: () => void;
-  onSuccess: (email: string) => void;
+  onSuccess: () => void;
 };
 
 export function AuthModal({ mode: initialMode, onClose, onSuccess }: Props) {
@@ -17,12 +22,46 @@ export function AuthModal({ mode: initialMode, onClose, onSuccess }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  function errorMessage(result: AuthActionResult): string {
+    if (result.ok) return "";
+    switch (result.error) {
+      case "invalid":
+        return t("authErrorInvalid");
+      case "mismatch":
+        return t("authErrorMismatch");
+      case "taken":
+        return t("authErrorTaken");
+      case "weak":
+        return t("authErrorWeak");
+      case "unknown":
+        return t("authErrorUnknown");
+      default: {
+        const _exhaustive: never = result.error;
+        return _exhaustive;
+      }
+    }
+  }
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (email && password) {
-      onSuccess(email);
-    }
+    setError(null);
+
+    startTransition(async () => {
+      const result =
+        mode === "register"
+          ? await registerAction(email, password, confirm)
+          : await loginAction(email, password);
+
+      if (!result.ok) {
+        setError(errorMessage(result));
+        return;
+      }
+
+      onSuccess();
+    });
   }
 
   return (
@@ -64,6 +103,7 @@ export function AuthModal({ mode: initialMode, onClose, onSuccess }: Props) {
               <input
                 type="email"
                 required
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-base text-white transition-all placeholder:text-white/40 focus:border-blue-400/60 focus:bg-white/15 focus:outline-none"
@@ -77,6 +117,9 @@ export function AuthModal({ mode: initialMode, onClose, onSuccess }: Props) {
               <input
                 type="password"
                 required
+                autoComplete={
+                  mode === "login" ? "current-password" : "new-password"
+                }
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-base text-white transition-all placeholder:text-white/40 focus:border-blue-400/60 focus:bg-white/15 focus:outline-none"
@@ -91,6 +134,7 @@ export function AuthModal({ mode: initialMode, onClose, onSuccess }: Props) {
                 <input
                   type="password"
                   required
+                  autoComplete="new-password"
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
                   className="w-full rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-base text-white transition-all placeholder:text-white/40 focus:border-blue-400/60 focus:bg-white/15 focus:outline-none"
@@ -98,11 +142,22 @@ export function AuthModal({ mode: initialMode, onClose, onSuccess }: Props) {
               </div>
             ) : null}
 
+            {error ? (
+              <p className="text-sm font-medium text-red-300" role="alert">
+                {error}
+              </p>
+            ) : null}
+
             <button
               type="submit"
-              className="mt-2 w-full rounded-2xl bg-white py-3 font-bold text-black transition-all hover:bg-blue-50 active:scale-[0.98]"
+              disabled={pending}
+              className="mt-2 w-full rounded-2xl bg-white py-3 font-bold text-black transition-all hover:bg-blue-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {mode === "login" ? t("login") : t("register")}
+              {pending
+                ? t("authPending")
+                : mode === "login"
+                  ? t("login")
+                  : t("register")}
             </button>
           </form>
 
@@ -110,7 +165,11 @@ export function AuthModal({ mode: initialMode, onClose, onSuccess }: Props) {
             {mode === "login" ? t("noAccount") : t("haveAccount")}{" "}
             <button
               type="button"
-              onClick={() => setMode(mode === "login" ? "register" : "login")}
+              disabled={pending}
+              onClick={() => {
+                setMode(mode === "login" ? "register" : "login");
+                setError(null);
+              }}
               className="text-blue-400 underline underline-offset-2 transition-colors hover:text-blue-300"
             >
               {mode === "login" ? t("register") : t("login")}

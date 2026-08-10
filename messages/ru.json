@@ -39,6 +39,12 @@
     "legendMonth": "месяц",
     "legendHour": "час",
     "footer": "Celestial Map Engine • 2026",
-    "loading": "Загрузка…"
+    "loading": "Загрузка…",
+    "authPending": "Подождите…",
+    "authErrorInvalid": "Неверный email или пароль.",
+    "authErrorMismatch": "Пароли не совпадают.",
+    "authErrorTaken": "Этот email уже зарегистрирован.",
+    "authErrorWeak": "Пароль должен быть не короче 6 символов.",
+    "authErrorUnknown": "Что-то пошло не так. Попробуйте ещё раз."
   }
 }

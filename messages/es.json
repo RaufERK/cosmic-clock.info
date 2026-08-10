@@ -39,6 +39,12 @@
     "legendMonth": "Mes",
     "legendHour": "h.",
     "footer": "Celestial Map Engine • 2026",
-    "loading": "Cargando…"
+    "loading": "Cargando…",
+    "authPending": "Espera…",
+    "authErrorInvalid": "Email o contraseña incorrectos.",
+    "authErrorMismatch": "Las contraseñas no coinciden.",
+    "authErrorTaken": "Este email ya está registrado.",
+    "authErrorWeak": "La contraseña debe tener al menos 6 caracteres.",
+    "authErrorUnknown": "Algo salió mal. Inténtalo de nuevo."
   }
 }

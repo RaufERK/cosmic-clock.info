@@ -1,19 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { LogOut, Plus, Settings } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useLocale, useTranslations } from "next-intl";
 import { AuthModal } from "@/components/AuthModal";
 import { CardForm, type CardFormValues } from "@/components/CardForm";
 import { CosmicClock } from "@/components/CosmicClock";
 import { Link, usePathname } from "@/i18n/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
-import {
-  clearDemoSession,
-  readDemoSession,
-  writeDemoSession,
-} from "@/lib/demo-auth";
+import { logoutAction } from "@/lib/auth-actions";
 import {
   getHandHour,
   monthHandRotation,
@@ -41,20 +38,22 @@ export function CosmicApp() {
   const locale = useLocale() as AppLocale;
   const pathname = usePathname();
   const months = t.raw("months") as string[];
+  const { data: session, status, update } = useSession();
+  const [logoutPending, startLogout] = useTransition();
 
   const [cards, setCards] = useState<CardData[]>([]);
   const [ready, setReady] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
-  const [user, setUser] = useState<string | null>(null);
+
+  const userEmail = session?.user?.email ?? null;
 
   useEffect(() => {
     let cancelled = false;
     queueMicrotask(() => {
       if (cancelled) return;
       setCards(readCards());
-      setUser(readDemoSession()?.email ?? null);
       setReady(true);
     });
     return () => {
@@ -82,15 +81,16 @@ export function CosmicApp() {
     setEditingId(null);
   }
 
-  function onAuthSuccess(email: string) {
-    writeDemoSession({ email });
-    setUser(email);
+  async function onAuthSuccess() {
+    await update();
     setAuthModal(null);
   }
 
   function onLogout() {
-    clearDemoSession();
-    setUser(null);
+    startLogout(async () => {
+      await logoutAction();
+      await update();
+    });
   }
 
   const locales = LOCALE_ORDER.filter((code) =>
@@ -167,15 +167,16 @@ export function CosmicApp() {
         </motion.div>
 
         <div className="flex items-center gap-2">
-          {user ? (
+          {userEmail ? (
             <div className="flex items-center overflow-hidden rounded-xl border border-white/25">
               <span className="hidden max-w-[130px] truncate border-r border-white/25 px-4 py-2 text-sm font-bold text-white/70 sm:block">
-                {user}
+                {userEmail}
               </span>
               <button
                 type="button"
                 onClick={onLogout}
-                className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-blue-300 transition-all hover:bg-blue-500/30 hover:text-white"
+                disabled={logoutPending || status === "loading"}
+                className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-blue-300 transition-all hover:bg-blue-500/30 hover:text-white disabled:opacity-60"
               >
                 <LogOut className="h-4 w-4" />
                 {t("logout")}

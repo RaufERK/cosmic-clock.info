@@ -3,6 +3,7 @@ import { getMessages, getTranslations, setRequestLocale } from "next-intl/server
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Cormorant_Garamond } from "next/font/google";
+import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 import { routing } from "@/i18n/routing";
 import "../globals.css";
 
@@ -49,7 +50,7 @@ export default async function LocaleLayout({ children, params }: Props) {
     <html lang={locale} className={`${display.variable} h-full`}>
       <body className="min-h-full antialiased">
         <NextIntlClientProvider messages={messages}>
-          {children}
+          <AuthSessionProvider>{children}</AuthSessionProvider>
         </NextIntlClientProvider>
       </body>
     </html>
