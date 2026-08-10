@@ -1,11 +1,18 @@
+# CCLOCK — design prototype (reference only)
 
-  # CCLOCK
+Figma Make export for Cosmic Clock.
 
-  This is a code bundle for CCLOCK. The original project is available at https://www.figma.com/design/OyrUnsJBNxJMONNqMXK1B3/CCLOCK.
+- Figma: https://www.figma.com/design/OyrUnsJBNxJMONNqMXK1B3/CCLOCK
+- **Not production.** The shipped app is the Next.js project in the **repo root**.
+- Use this folder for UI/UX and clock behavior reference when porting into `../src/`.
 
-  ## Running the code
+Product docs: [`../docs/PRODUCT.md`](../docs/PRODUCT.md)
 
-  Run `npm i` to install the dependencies.
+## Local preview (optional)
 
-  Run `npm run dev` to start the development server.
-  
+```bash
+npm i
+npm run dev
+```
+
+Do not deploy this Vite app to cosmic-clock.info.

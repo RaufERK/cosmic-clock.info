@@ -39,7 +39,7 @@ export const AuthModal = ({ mode: initialMode, onClose, onSuccess }: AuthModalPr
           exit={{ opacity: 0, scale: 0.92, y: 20 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
           onClick={e => e.stopPropagation()}
-          className="relative w-full max-w-sm bg-[#0a0a14] border border-white/15 rounded-[2rem] p-8 shadow-2xl"
+          className="relative w-full max-w-sm bg-indigo-950/80 backdrop-blur-2xl border border-indigo-400/20 rounded-[2rem] p-8 shadow-2xl shadow-indigo-950"
         >
           <button
             onClick={onClose}
@@ -54,36 +54,36 @@ export const AuthModal = ({ mode: initialMode, onClose, onSuccess }: AuthModalPr
 
           <form onSubmit={handleSubmit} className="space-y-3">
             <div className="space-y-1">
-              <label className="text-[10px] text-white/40 uppercase tracking-widest font-bold">{tr.email}</label>
+              <label className="text-xs text-white/70 uppercase tracking-widest font-bold">{tr.email}</label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder:text-white/20 focus:outline-none focus:border-blue-500/50 focus:bg-white/8 transition-all text-sm"
+                className="w-full bg-white/10 border border-white/25 rounded-xl px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-blue-400/60 focus:bg-white/15 transition-all text-base"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] text-white/40 uppercase tracking-widest font-bold">{tr.password}</label>
+              <label className="text-xs text-white/70 uppercase tracking-widest font-bold">{tr.password}</label>
               <input
                 type="password"
                 required
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder:text-white/20 focus:outline-none focus:border-blue-500/50 transition-all text-sm"
+                className="w-full bg-white/10 border border-white/25 rounded-xl px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-blue-400/60 focus:bg-white/15 transition-all text-base"
               />
             </div>
 
             {mode === 'register' && (
               <div className="space-y-1">
-                <label className="text-[10px] text-white/40 uppercase tracking-widest font-bold">{tr.confirmPassword}</label>
+                <label className="text-xs text-white/70 uppercase tracking-widest font-bold">{tr.confirmPassword}</label>
                 <input
                   type="password"
                   required
                   value={confirm}
                   onChange={e => setConfirm(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder:text-white/20 focus:outline-none focus:border-blue-500/50 transition-all text-sm"
+                  className="w-full bg-white/10 border border-white/25 rounded-xl px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-blue-400/60 focus:bg-white/15 transition-all text-base"
                 />
               </div>
             )}
@@ -96,7 +96,7 @@ export const AuthModal = ({ mode: initialMode, onClose, onSuccess }: AuthModalPr
             </button>
           </form>
 
-          <p className="text-center text-white/30 text-xs mt-5">
+          <p className="text-center text-white/55 text-sm mt-5">
             {mode === 'login' ? tr.noAccount : tr.haveAccount}{' '}
             <button
               onClick={() => setMode(mode === 'login' ? 'register' : 'login')}

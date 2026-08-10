@@ -50,8 +50,7 @@ export const CosmicClock = ({ day, month, year, size = 180 }: CosmicClockProps) 
   };
 
   // Outer arc for an active sector, in given color
-  const outerArcPath = (sectorIndex: number) => {
-    const arcR       = r + 5;
+  const outerArcPath = (sectorIndex: number, arcR: number) => {
     const startAngle = (sectorIndex * 30 - 90) * (Math.PI / 180);
     const endAngle   = ((sectorIndex + 1) * 30 - 90) * (Math.PI / 180);
     const x1 = cx + arcR * Math.cos(startAngle);
@@ -90,40 +89,12 @@ export const CosmicClock = ({ day, month, year, size = 180 }: CosmicClockProps) 
         ))}
 
         {/* Outer arc indicators for active sectors */}
-        {/* Glow layer (blurred copy) */}
-        <path
-          d={outerArcPath(hourSector)}
-          fill="none"
-          stroke="#60a5fa"
-          strokeWidth="6"
-          strokeLinecap="round"
-          style={{ filter: 'blur(4px)' }}
-          opacity="0.7"
-        />
-        <path
-          d={outerArcPath(minuteSector)}
-          fill="none"
-          stroke="#c084fc"
-          strokeWidth="6"
-          strokeLinecap="round"
-          style={{ filter: 'blur(4px)' }}
-          opacity="0.7"
-        />
-        {/* Sharp arc on top */}
-        <path
-          d={outerArcPath(hourSector)}
-          fill="none"
-          stroke="#60a5fa"
-          strokeWidth="3"
-          strokeLinecap="round"
-        />
-        <path
-          d={outerArcPath(minuteSector)}
-          fill="none"
-          stroke="#c084fc"
-          strokeWidth="3"
-          strokeLinecap="round"
-        />
+        {/* Hour (year) arc */}
+        <path d={outerArcPath(hourSector, r + 7)} fill="none" stroke="#60a5fa" strokeWidth="9" strokeLinecap="round" style={{ filter: 'blur(4px)' }} opacity="0.7" />
+        <path d={outerArcPath(hourSector, r + 7)} fill="none" stroke="#60a5fa" strokeWidth="4" strokeLinecap="round" />
+        {/* Minute (month) arc */}
+        <path d={outerArcPath(minuteSector, r + 7)} fill="none" stroke="#c084fc" strokeWidth="9" strokeLinecap="round" style={{ filter: 'blur(4px)' }} opacity="0.7" />
+        <path d={outerArcPath(minuteSector, r + 7)} fill="none" stroke="#c084fc" strokeWidth="4" strokeLinecap="round" />
 
         {/* Separator lines */}
         {hours.map((_, i) => {
@@ -191,8 +162,8 @@ export const CosmicClock = ({ day, month, year, size = 180 }: CosmicClockProps) 
         initial={{ rotate: 0 }}
         animate={{ rotate: hourRotation }}
         transition={{ duration: 1.5, ease: 'easeOut' }}
-        className="absolute origin-bottom bottom-1/2 rounded-full bg-blue-500"
-        style={{ width: '20px', height: `${size * 0.28}px`, boxShadow: '0 0 8px rgba(96,165,250,0.45)' }}
+        className="absolute origin-bottom bottom-1/2 rounded-full bg-blue-400"
+        style={{ width: '20px', height: `${size * 0.28}px`, boxShadow: '0 0 10px rgba(96,165,250,0.65)' }}
       />
 
       {/* Minute hand — month */}
@@ -200,8 +171,8 @@ export const CosmicClock = ({ day, month, year, size = 180 }: CosmicClockProps) 
         initial={{ rotate: 0 }}
         animate={{ rotate: minuteRotation }}
         transition={{ duration: 2, ease: 'easeOut' }}
-        className="absolute origin-bottom bottom-1/2 rounded-full bg-purple-500"
-        style={{ width: '11px', height: `${size * 0.35}px`, boxShadow: '0 0 6px rgba(192,132,252,0.4)' }}
+        className="absolute origin-bottom bottom-1/2 rounded-full bg-purple-400"
+        style={{ width: '11px', height: `${size * 0.35}px`, boxShadow: '0 0 8px rgba(192,132,252,0.6)' }}
       />
 
       {/* Second hand — day */}

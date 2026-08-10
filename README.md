@@ -1,13 +1,30 @@
 # Cosmic Clock
 
-Next.js scaffold for [cosmic-clock.info](https://cosmic-clock.info).  
-Figma prototype remains in `../CCLOCK` (design reference only).
+Production app for [cosmic-clock.info](https://cosmic-clock.info).
 
-## Stack (scaffold)
+Users create **life-event cards** (birth, marriage, job, project, …). Each card drives a cosmic clock whose hands show **year / month / day** for that event.
+
+## Docs (humans + AI agents)
+
+| Doc | Contents |
+|-----|----------|
+| [`docs/PRODUCT.md`](docs/PRODUCT.md) | Product idea & domain |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Stack & layout |
+| [`docs/PLAN.md`](docs/PLAN.md) | Checkbox plan (follow stage by stage) |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md) | Short stage map |
+| [`docs/INFRA.md`](docs/INFRA.md) | SSH, server DB, local Docker Postgres |
+| [`AGENTS.md`](AGENTS.md) | Instructions for coding agents |
+
+## Design prototype
+
+[`CCLOCK/`](CCLOCK/) — Figma Make reference (Vite SPA). **Do not deploy it.** Port UI/behavior into this Next.js app.
+
+## Stack
 
 - Next.js App Router + TypeScript + Tailwind
 - `next-intl` — `en` / `ru` / `es` / `pt`
 - Auth stub — `localStorage` demo session (no DB yet)
+- Planned: PostgreSQL + Prisma + real auth
 - PM2 + nginx on amster (`127.0.0.1:3060`)
 
 ## Local
@@ -19,10 +36,18 @@ npm run dev
 
 Open http://localhost:3060/en
 
-## Deploy (when ready)
+Optional local Postgres (port **5433**):
 
-1. Point DNS `cosmic-clock.info` + `www` → `185.200.178.73`
-2. Create GitHub repo, set `repo` in `ecosystem.config.cjs`
-3. On server (as `appuser`): dirs `~/apps/cosmic-clock/{source,shared}`, `~/logs`
-4. `pm2 deploy production setup` then `pm2 deploy production`
-5. As root: copy nginx conf, `ln -s`, `certbot --nginx -d cosmic-clock.info -d www.cosmic-clock.info`
+```bash
+docker compose up -d
+# DATABASE_URL from .env.example — see docs/INFRA.md
+```
+
+## Deploy
+
+1. DNS `cosmic-clock.info` + `www` → server
+2. On server (as `appuser`): dirs `~/apps/cosmic-clock/{source,shared}`, `~/logs`
+3. `pm2 deploy production setup` then `pm2 deploy production`
+4. As root: nginx conf + certbot for the domain
+
+See `ecosystem.config.cjs` and `deploy/nginx/`.

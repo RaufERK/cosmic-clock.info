@@ -56,17 +56,19 @@ function AppInner() {
       </div>
 
       {/* Nav */}
-      <nav className="relative z-10 px-8 pt-8 pb-16 max-w-7xl mx-auto flex items-center justify-between gap-4">
-        {/* Language switcher */}
-        <div className="flex items-center gap-1.5">
-          {languages.map(l => (
+      <nav className="relative z-10 px-8 pt-8 pb-16 max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+        {/* Language switcher — segmented control */}
+        <div className="flex items-center border border-white/25 rounded-xl overflow-hidden">
+          {languages.map((l, idx) => (
             <button
               key={l.code}
               onClick={() => setLang(l.code)}
-              className={`px-3.5 py-1.5 rounded-xl text-sm font-bold tracking-widest transition-all ${
+              className={`px-3 py-1.5 text-xs font-bold tracking-widest transition-all ${
+                idx > 0 ? 'border-l border-white/25' : ''
+              } ${
                 lang === l.code
-                  ? 'bg-blue-500/25 text-blue-300 border border-blue-400/50'
-                  : 'text-white/55 hover:text-white/90 border border-white/15 hover:border-white/35'
+                  ? 'bg-blue-500/25 text-blue-300'
+                  : 'text-white/70 hover:text-white hover:bg-white/10'
               }`}
             >
               {l.label}
@@ -80,56 +82,66 @@ function AppInner() {
           whileHover="hover"
           className="text-center relative group cursor-default flex-1"
         >
-          <motion.div
-            variants={{ initial: { width: '40px', height: '1px', opacity: 0.4 }, hover: { width: '100%', height: '2px', opacity: 1 } }}
-            className="bg-blue-500 mx-auto mb-4 transition-all duration-700"
-          />
-          <motion.h1
-            variants={{ initial: { scale: 1, textShadow: '0 0 0px rgba(59,130,246,0)' }, hover: { scale: 1.05, textShadow: '0 0 30px rgba(59,130,246,0.6)' } }}
-            className="text-3xl md:text-5xl font-extrabold tracking-[0.2em] text-white transition-all duration-500"
+          <motion.svg
+            variants={{ initial: { filter: 'drop-shadow(0 0 0px rgba(59,130,246,0))', scale: 1 }, hover: { filter: 'drop-shadow(0 0 18px rgba(59,130,246,0.65))', scale: 1.04 } }}
+            viewBox="0 0 720 65"
+            className="w-full max-w-lg md:max-w-xl mx-auto"
+            overflow="visible"
+            style={{ transition: 'filter 0.5s, transform 0.5s' }}
           >
-            {tr.title}
-          </motion.h1>
-          <motion.div
-            variants={{ initial: { width: '40px', height: '1px', opacity: 0.4 }, hover: { width: '100%', height: '2px', opacity: 1 } }}
-            className="bg-blue-500 mx-auto mt-4 transition-all duration-700"
-          />
+            <defs>
+              <path id="titleArc" d="M 10,58 A 3410,3410 0 0,1 710,58" />
+            </defs>
+            <text
+              fill="white"
+              fontFamily="Georgia, 'Times New Roman', serif"
+              fontWeight="800"
+              fontSize="57"
+              letterSpacing="7"
+            >
+              <textPath href="#titleArc" startOffset="50%" textAnchor="middle">
+                {tr.title}
+              </textPath>
+            </text>
+          </motion.svg>
         </motion.div>
 
         {/* Auth buttons */}
         <div className="flex items-center gap-2">
           {user ? (
-            <>
-              <span className="text-white/60 text-sm hidden sm:block max-w-[120px] truncate">{user}</span>
+            <div className="flex items-center border border-white/25 rounded-xl overflow-hidden">
+              <span className="px-4 py-2 text-sm font-bold text-white/70 border-r border-white/25 max-w-[130px] truncate hidden sm:block">
+                {user}
+              </span>
               <button
                 onClick={() => setUser(null)}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold text-white/60 hover:text-white border border-white/20 hover:border-white/40 transition-all"
+                className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-blue-300 hover:text-white hover:bg-blue-500/30 transition-all"
               >
-                <LogOut className="w-3.5 h-3.5" />
+                <LogOut className="w-4 h-4" />
                 {tr.logout}
               </button>
-            </>
+            </div>
           ) : (
-            <>
+            <div className="flex items-center border border-white/25 rounded-xl overflow-hidden">
               <button
                 onClick={() => setAuthModal('login')}
-                className="px-4 py-2 rounded-xl text-sm font-bold text-white/70 hover:text-white border border-white/20 hover:border-white/45 transition-all"
+                className="px-4 py-2 text-sm font-bold text-white/70 hover:text-white hover:bg-white/10 transition-all border-r border-white/25"
               >
                 {tr.login}
               </button>
               <button
                 onClick={() => setAuthModal('register')}
-                className="px-4 py-2 rounded-xl text-sm font-bold bg-blue-500/20 text-blue-300 border border-blue-400/40 hover:bg-blue-500/35 hover:text-blue-200 transition-all"
+                className="px-4 py-2 text-sm font-bold text-blue-300 hover:text-white hover:bg-blue-500/30 transition-all"
               >
                 {tr.register}
               </button>
-            </>
+            </div>
           )}
         </div>
       </nav>
 
       <main className="relative z-10 max-w-7xl mx-auto px-8 pb-32">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
           <AnimatePresence mode="popLayout">
             {cards.map((card) => (
               <motion.div
@@ -148,7 +160,7 @@ function AppInner() {
                     onDelete={() => removeCard(card.id)}
                   />
                 ) : (
-                  <motion.div className="w-full h-full bg-white/[0.12] backdrop-blur-xl border border-white/20 rounded-[2.5rem] p-8 hover:bg-white/[0.16] transition-all duration-500 flex flex-col items-center group-hover:border-white/30 shadow-2xl relative">
+                  <motion.div className="w-full h-full bg-indigo-950/80 backdrop-blur-2xl border border-indigo-400/20 rounded-[2.5rem] p-8 hover:bg-indigo-950/90 transition-all duration-500 flex flex-col items-center group-hover:border-indigo-400/35 shadow-2xl shadow-indigo-950 relative">
                     {/* Name */}
                     <div className="text-center w-full min-h-[3rem] flex flex-col items-center justify-center">
                       <h3 className="text-2xl font-black tracking-tight text-white/90 group-hover:text-white transition-colors line-clamp-2 leading-tight">
@@ -158,8 +170,8 @@ function AppInner() {
 
                     {/* Date — one line under title */}
                     <div className="text-center mt-2 mb-1">
-                      <p className="text-blue-300 font-black text-sm uppercase tracking-wider">
-                        {card.day} {tr.months[card.month - 1]} {card.year}
+                      <p className="text-blue-300 font-black text-lg tracking-wider">
+                        {card.day} {(tr.months[card.month - 1] ?? '').toLowerCase()} {card.year}
                       </p>
                     </div>
 
@@ -170,15 +182,21 @@ function AppInner() {
 
                     {/* Footer — legend + settings */}
                     <div className="w-full pt-4 border-t border-white/10 flex justify-between items-end mt-auto">
-                      <div className="flex flex-col gap-1">
-                        <p className="text-blue-300 font-black text-base tracking-wide">
-                          <span className="text-white/60 font-bold">{tr.legendYear}:</span>{' '}
-                          {getHandHour((card.year % 100) * 3.6)} {tr.legendHour}
-                        </p>
-                        <p className="text-purple-300 font-black text-base tracking-wide">
-                          <span className="text-white/60 font-bold">{tr.legendMonth}:</span>{' '}
-                          {getHandHour((card.month - 1) * 30)} {tr.legendHour}
-                        </p>
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-sm bg-blue-400 shadow-[0_0_6px_rgba(96,165,250,0.7)] flex-shrink-0" />
+                          <p className="text-blue-300 font-black text-base tracking-wide">
+                            <span className="text-white/60 font-bold">{tr.legendYear}:</span>{' '}
+                            {getHandHour((card.year % 100) * 3.6)} {tr.legendHour}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-sm bg-purple-400 shadow-[0_0_6px_rgba(192,132,252,0.7)] flex-shrink-0" />
+                          <p className="text-purple-300 font-black text-base tracking-wide">
+                            <span className="text-white/60 font-bold">{tr.legendMonth}:</span>{' '}
+                            {getHandHour((card.month - 1) * 30)} {tr.legendHour}
+                          </p>
+                        </div>
                       </div>
                       <button
                         onClick={() => setEditingId(card.id)}

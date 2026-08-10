@@ -1,0 +1,24 @@
+# Local PostgreSQL for Cosmic Clock development.
+# Host port 5433 — avoids clash with other local Postgres on 5432.
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: cosmic-clock-postgres
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: cosmic_clock
+      POSTGRES_PASSWORD: cosmic_clock
+      POSTGRES_DB: cosmic_clock
+    volumes:
+      - cosmic_clock_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cosmic_clock -d cosmic_clock"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  cosmic_clock_pgdata:

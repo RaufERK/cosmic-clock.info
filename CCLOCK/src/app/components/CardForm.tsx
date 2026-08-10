@@ -24,7 +24,7 @@ export const CardForm = ({ initialData, onSave, onCancel, onDelete, isNew }: Car
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="w-full h-full rounded-[2.5rem] p-8 flex flex-col bg-[#0a0a10]/95 backdrop-blur-3xl border border-white/20 shadow-2xl shadow-black ring-1 ring-white/10"
+      className="w-full h-full rounded-[2.5rem] p-8 flex flex-col bg-indigo-950/80 backdrop-blur-2xl border border-indigo-400/20 shadow-2xl shadow-indigo-950"
     >
       <div className="flex justify-end items-center mb-4">
         {onCancel && (
@@ -36,12 +36,12 @@ export const CardForm = ({ initialData, onSave, onCancel, onDelete, isNew }: Car
 
       <form onSubmit={handleSubmit} className="flex-1 space-y-3 pr-1">
         <div className="space-y-1">
-          <label className="text-[10px] text-white/40 uppercase tracking-widest ml-1 font-bold">{tr.labelName}</label>
+          <label className="text-xs text-white/70 uppercase tracking-widest ml-1 font-bold">{tr.labelName}</label>
           <input
             type="text"
             placeholder={tr.namePlaceholder}
             required
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder:text-white/20 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all text-sm"
+            className="w-full bg-white/10 border border-white/25 rounded-xl px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-blue-400/60 focus:bg-white/15 transition-all text-base"
             value={formData.name}
             onChange={e => setFormData({ ...formData, name: e.target.value })}
           />
@@ -49,28 +49,28 @@ export const CardForm = ({ initialData, onSave, onCancel, onDelete, isNew }: Car
 
         <div className="space-y-3">
           <div className="space-y-1">
-            <label className="text-[10px] text-white/40 uppercase tracking-widest ml-1 font-bold">{tr.labelDay}</label>
+            <label className="text-xs text-white/70 uppercase tracking-widest ml-1 font-bold">{tr.labelDay}</label>
             <input
               type="number" min="1" max="31"
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500/50 text-sm"
+              className="w-full bg-white/10 border border-white/25 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-400/60 focus:bg-white/15 transition-all text-base"
               value={formData.day}
               onChange={e => { const v = parseInt(e.target.value); if (!isNaN(v)) setFormData({ ...formData, day: v }); }}
             />
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] text-white/40 uppercase tracking-widest ml-1 font-bold">{tr.labelMonth}</label>
+            <label className="text-xs text-white/70 uppercase tracking-widest ml-1 font-bold">{tr.labelMonth}</label>
             <input
               type="number" min="1" max="12"
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500/50 text-sm"
+              className="w-full bg-white/10 border border-white/25 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-400/60 focus:bg-white/15 transition-all text-base"
               value={formData.month}
               onChange={e => { const v = parseInt(e.target.value); if (!isNaN(v)) setFormData({ ...formData, month: v }); }}
             />
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] text-white/40 uppercase tracking-widest ml-1 font-bold">{tr.labelYear}</label>
+            <label className="text-xs text-white/70 uppercase tracking-widest ml-1 font-bold">{tr.labelYear}</label>
             <input
               type="number"
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500/50 text-sm"
+              className="w-full bg-white/10 border border-white/25 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-400/60 focus:bg-white/15 transition-all text-base"
               value={formData.year}
               onChange={e => { const v = parseInt(e.target.value); if (!isNaN(v)) setFormData({ ...formData, year: v }); }}
             />

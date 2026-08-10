@@ -1,0 +1,23 @@
+---
+description: Amster SSH hosts and local/prod Postgres for Cosmic Clock
+alwaysApply: true
+---
+
+# Cosmic Clock — server & DB access
+
+Full detail: `docs/INFRA.md`.
+
+## SSH (do not ask the user to restate these)
+
+- Admin: `ssh amster` → `root@185.200.178.73`
+- App user: `ssh amster_app` → `appuser@185.200.178.73` (underscore, not `amster-app`)
+- Key: `~/.ssh/id_ed25519`
+- App dir: `/home/appuser/apps/cosmic-clock` (shared `.env` under `shared/`)
+
+## Databases
+
+- **Local:** `docker compose up -d` → Postgres 16 on host port **5433**  
+  `DATABASE_URL=postgresql://cosmic_clock:cosmic_clock@127.0.0.1:5433/cosmic_clock`
+- **Server:** system PostgreSQL 14 on `127.0.0.1:5432` (not public). No `cosmic_clock` DB until Phase 2.
+- Deploy is optional during early development; local Docker is enough for DB work.
+- Never commit real production secrets.

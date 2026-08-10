@@ -27,8 +27,8 @@ export const t = {
     haveAccount: 'Уже есть аккаунт?',
     noAccount: 'Нет аккаунта?',
     months: ['Января','Февраля','Марта','Апреля','Мая','Июня','Июля','Августа','Сентября','Октября','Ноября','Декабря'],
-    legendYear: 'Год',
-    legendMonth: 'Месяц',
+    legendYear: 'год',
+    legendMonth: 'месяц',
     legendHour: 'час',
   },
   en: {
