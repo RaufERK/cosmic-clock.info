@@ -45,6 +45,14 @@
     "authErrorMismatch": "As senhas não coincidem.",
     "authErrorTaken": "Este email já está registado.",
     "authErrorWeak": "A senha deve ter pelo menos 6 caracteres.",
-    "authErrorUnknown": "Algo correu mal. Tente novamente."
+    "authErrorUnknown": "Algo correu mal. Tente novamente.",
+    "exampleCard1": "Carta pessoal",
+    "exampleCard2": "Trânsitos 2026",
+    "guestHint": "Cartas de exemplo para convidados. Entre para criar e guardar as suas.",
+    "cardErrorUnauthorized": "Entre para gerir as cartas.",
+    "cardErrorInvalid": "Verifique o nome e a data da carta.",
+    "cardErrorNotFound": "Carta não encontrada.",
+    "cardErrorLimit": "Pode ter no máximo 100 cartas.",
+    "cardErrorUnknown": "Não foi possível guardar a carta. Tente novamente."
   }
 }

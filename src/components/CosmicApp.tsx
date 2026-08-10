@@ -12,15 +12,22 @@ import { Link, usePathname } from "@/i18n/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { logoutAction } from "@/lib/auth-actions";
 import {
+  createCardAction,
+  deleteCardAction,
+  listMyCardsAction,
+  updateCardAction,
+  type CardActionResult,
+} from "@/lib/card-actions";
+import {
+  EXAMPLE_CARD_DATES,
+  type CardData,
+  isExampleCardId,
+} from "@/lib/cards";
+import {
   getHandHour,
   monthHandRotation,
   yearHandRotation,
 } from "@/lib/cosmic-clock-math";
-import {
-  type CardData,
-  readCards,
-  writeCards,
-} from "@/lib/cards-storage";
 
 const LOCALE_ORDER: AppLocale[] = ["ru", "en", "es", "pt"];
 const LOCALE_LABEL: Record<AppLocale, string> = {
@@ -40,45 +47,167 @@ export function CosmicApp() {
   const months = t.raw("months") as string[];
   const { data: session, status, update } = useSession();
   const [logoutPending, startLogout] = useTransition();
+  const [cardsPending, startCardsTransition] = useTransition();
 
   const [cards, setCards] = useState<CardData[]>([]);
   const [ready, setReady] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const userEmail = session?.user?.email ?? null;
+  const isLoggedIn = Boolean(session?.user?.id);
+  const sessionReady = status !== "loading";
+
+  function guestExampleCards(): CardData[] {
+    return [
+      {
+        id: EXAMPLE_CARD_DATES[0].id,
+        name: t("exampleCard1"),
+        day: EXAMPLE_CARD_DATES[0].day,
+        month: EXAMPLE_CARD_DATES[0].month,
+        year: EXAMPLE_CARD_DATES[0].year,
+      },
+      {
+        id: EXAMPLE_CARD_DATES[1].id,
+        name: t("exampleCard2"),
+        day: EXAMPLE_CARD_DATES[1].day,
+        month: EXAMPLE_CARD_DATES[1].month,
+        year: EXAMPLE_CARD_DATES[1].year,
+      },
+    ];
+  }
+
+  function cardErrorMessage(result: CardActionResult): string {
+    if (result.ok) return "";
+    switch (result.error) {
+      case "unauthorized":
+        return t("cardErrorUnauthorized");
+      case "invalid":
+        return t("cardErrorInvalid");
+      case "not_found":
+        return t("cardErrorNotFound");
+      case "limit":
+        return t("cardErrorLimit");
+      case "unknown":
+        return t("cardErrorUnknown");
+      default: {
+        const _exhaustive: never = result.error;
+        return _exhaustive;
+      }
+    }
+  }
 
   useEffect(() => {
+    if (!sessionReady) return;
+
     let cancelled = false;
+
     queueMicrotask(() => {
-      if (cancelled) return;
-      setCards(readCards());
-      setReady(true);
+      void (async () => {
+        setActionError(null);
+        setEditingId(null);
+        setIsAdding(false);
+        setReady(false);
+
+        if (!session?.user?.id) {
+          if (!cancelled) {
+            setCards(guestExampleCards());
+            setReady(true);
+          }
+          return;
+        }
+
+        const result = await listMyCardsAction();
+        if (cancelled) return;
+
+        if (!result.ok) {
+          setActionError(cardErrorMessage(result));
+          setCards([]);
+          setReady(true);
+          return;
+        }
+
+        setCards(result.cards ?? []);
+        setReady(true);
+      })();
     });
+
     return () => {
       cancelled = true;
     };
-  }, []);
+    // Reload when auth or locale changes (example card titles are localized).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionReady, session?.user?.id, locale]);
 
-  function persist(next: CardData[]) {
-    setCards(next);
-    writeCards(next);
+  function requireAuth(): boolean {
+    if (isLoggedIn) return true;
+    setAuthModal("login");
+    return false;
   }
 
   function addCard(data: CardFormValues) {
-    persist([...cards, { ...data, id: Date.now().toString() }]);
-    setIsAdding(false);
+    if (!requireAuth()) return;
+    setActionError(null);
+    startCardsTransition(async () => {
+      const result = await createCardAction(data);
+      if (!result.ok) {
+        setActionError(cardErrorMessage(result));
+        return;
+      }
+      if (result.card) {
+        setCards((prev) => [...prev, result.card!]);
+      }
+      setIsAdding(false);
+    });
   }
 
   function updateCard(id: string, data: CardFormValues) {
-    persist(cards.map((card) => (card.id === id ? { ...data, id } : card)));
-    setEditingId(null);
+    if (!requireAuth()) return;
+    if (isExampleCardId(id)) return;
+    setActionError(null);
+    startCardsTransition(async () => {
+      const result = await updateCardAction(id, data);
+      if (!result.ok) {
+        setActionError(cardErrorMessage(result));
+        return;
+      }
+      if (result.card) {
+        setCards((prev) =>
+          prev.map((card) => (card.id === id ? result.card! : card)),
+        );
+      }
+      setEditingId(null);
+    });
   }
 
   function removeCard(id: string) {
-    persist(cards.filter((card) => card.id !== id));
-    setEditingId(null);
+    if (!requireAuth()) return;
+    if (isExampleCardId(id)) return;
+    setActionError(null);
+    startCardsTransition(async () => {
+      const result = await deleteCardAction(id);
+      if (!result.ok) {
+        setActionError(cardErrorMessage(result));
+        return;
+      }
+      setCards((prev) => prev.filter((card) => card.id !== id));
+      setEditingId(null);
+    });
+  }
+
+  function onSettingsClick(cardId: string) {
+    if (!isLoggedIn || isExampleCardId(cardId)) {
+      setAuthModal("login");
+      return;
+    }
+    setEditingId(cardId);
+  }
+
+  function onAddClick() {
+    if (!requireAuth()) return;
+    setIsAdding(true);
   }
 
   async function onAuthSuccess() {
@@ -204,10 +333,26 @@ export function CosmicApp() {
       </nav>
 
       <main className="relative z-10 mx-auto max-w-7xl px-8 pb-32">
+        {!isLoggedIn && ready ? (
+          <p className="mb-8 text-center text-sm text-white/40">
+            {t("guestHint")}
+          </p>
+        ) : null}
+
+        {actionError ? (
+          <p className="mb-6 text-center text-sm text-red-300" role="alert">
+            {actionError}
+          </p>
+        ) : null}
+
         {!ready ? (
           <div className="py-24 text-center text-white/30">{t("loading")}</div>
         ) : (
-          <div className="grid grid-cols-1 gap-10 md:grid-cols-2 xl:grid-cols-3">
+          <div
+            className={`grid grid-cols-1 gap-10 md:grid-cols-2 xl:grid-cols-3 ${
+              cardsPending ? "opacity-70" : ""
+            }`}
+          >
             <AnimatePresence mode="popLayout">
               {cards.map((card) => (
                 <motion.div
@@ -218,7 +363,7 @@ export function CosmicApp() {
                   exit={{ opacity: 0, scale: 0.9 }}
                   className="group relative h-[580px]"
                 >
-                  {editingId === card.id ? (
+                  {editingId === card.id && isLoggedIn ? (
                     <CardForm
                       initialData={card}
                       onSave={(data) => updateCard(card.id, data)}
@@ -275,7 +420,7 @@ export function CosmicApp() {
                         </div>
                         <button
                           type="button"
-                          onClick={() => setEditingId(card.id)}
+                          onClick={() => onSettingsClick(card.id)}
                           className="rounded-xl border border-white/5 bg-white/5 p-2.5 text-white/25 transition-all hover:border-blue-500/30 hover:bg-blue-500/15 hover:text-blue-400"
                         >
                           <Settings className="h-5 w-5" />
@@ -287,7 +432,7 @@ export function CosmicApp() {
               ))}
 
               <motion.div layout className="h-[580px]">
-                {isAdding ? (
+                {isAdding && isLoggedIn ? (
                   <CardForm
                     onSave={addCard}
                     onCancel={() => setIsAdding(false)}
@@ -296,7 +441,7 @@ export function CosmicApp() {
                 ) : (
                   <button
                     type="button"
-                    onClick={() => setIsAdding(true)}
+                    onClick={onAddClick}
                     className="group flex h-full w-full flex-col items-center justify-center gap-6 rounded-[2.5rem] border border-dashed border-white/10 text-white/20 transition-all hover:border-blue-500/30 hover:bg-white/[0.02]"
                   >
                     <div className="rounded-full bg-white/5 p-8 transition-all group-hover:scale-105 group-hover:bg-blue-500/10">

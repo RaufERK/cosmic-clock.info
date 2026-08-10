@@ -136,16 +136,15 @@ No OAuth (Google etc.) in v1 unless we add it later on purpose.
 - [x] Remove demo-auth helpers
 - [x] Auth strings in all 4 locales
 - [x] `.env.example`: `AUTH_SECRET`
-- [ ] Waiting for your check + commit
+- [x] Committed
 
 **You check**
 
-- [ ] Register → login → logout round-trip
-- [ ] Wrong password fails cleanly
-- [ ] Session survives refresh
-- [ ] Another browser/profile does not see the session
+- [x] Register → login → logout round-trip
+- [x] Wrong password fails cleanly
+- [x] Session survives refresh
 
-**Commit when:** auth feels solid locally.
+**Status:** done.
 
 ---
 
@@ -153,20 +152,24 @@ No OAuth (Google etc.) in v1 unless we add it later on purpose.
 
 **Goal:** cards belong to the user in the DB.
 
-- [ ] Server Actions or route handlers for card CRUD
-- [ ] List/create/edit/delete only own cards
-- [ ] Enforce **max 100 cards / user** (server-side)
-- [ ] Remove temporary client-only card storage
-- [ ] Loading / error states for network
+- [x] Server Actions for card CRUD
+- [x] List/create/edit/delete only own cards
+- [x] Enforce **max 100 cards / user** (server-side)
+- [x] Guest sees **2 example cards** (not in DB); logged-in sees **only own** cards (no examples)
+- [x] Remove localStorage card storage
+- [x] Loading / error states for network
+- [x] Committed
 
 **You check**
 
-- [ ] Create card → refresh → still there
-- [ ] Second user cannot see first user’s cards
-- [ ] 101st card rejected with clear message
-- [ ] Delete works permanently
+- [x] Guest: 2 examples; Add/Settings ask to sign in
+- [x] Login with empty account → no examples, only Add
+- [x] Create card → refresh → still there
+- [x] Second user cannot see first user’s cards
+- [x] Logout → examples again
+- [x] Delete works permanently
 
-**Commit when:** persistence verified.
+**Status:** done.
 
 ---
 
@@ -216,7 +219,9 @@ No OAuth (Google etc.) in v1 unless we add it later on purpose.
 
 ## Current position
 
-**Done:** Stage A–D.  
-**Waiting on you:** **Stage E** — real Auth.js login/register. Check the list below, then ask for the commit.
+**Done:** Stage A–F.  
+**Next:** **Stage G** — polish (date validation, confirm delete, mobile, copy).
 
-Next after E: **Stage F** (persist cards in Postgres).
+Then **H** — server DB + optional deploy (when you want).
+
+Say when to start G.

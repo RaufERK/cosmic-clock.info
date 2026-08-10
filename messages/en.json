@@ -45,6 +45,14 @@
     "authErrorMismatch": "Passwords do not match.",
     "authErrorTaken": "This email is already registered.",
     "authErrorWeak": "Password must be at least 6 characters.",
-    "authErrorUnknown": "Something went wrong. Try again."
+    "authErrorUnknown": "Something went wrong. Try again.",
+    "exampleCard1": "Personal chart",
+    "exampleCard2": "Transits 2026",
+    "guestHint": "Example cards for guests. Sign in to create and save your own.",
+    "cardErrorUnauthorized": "Please sign in to manage cards.",
+    "cardErrorInvalid": "Check the card name and date.",
+    "cardErrorNotFound": "Card not found.",
+    "cardErrorLimit": "You can have at most 100 cards.",
+    "cardErrorUnknown": "Could not save the card. Try again."
   }
 }
