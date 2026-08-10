@@ -8,7 +8,7 @@
 | Styling | **Tailwind CSS** | Match Cosmic Clock look from `CCLOCK` |
 | i18n | **next-intl** | Locales: `en`, `ru`, `es`, `pt` (`localePrefix: "always"`) |
 | DB | **PostgreSQL** | Local: Docker Compose (`docs/INFRA.md`); server: system PG 14 |
-| ORM | **Prisma** (planned) | Prefer when adding persistence |
+| ORM | **Prisma 7** | Client in `src/generated/prisma`; helper `src/lib/db.ts` |
 | Auth | **Auth.js** (Credentials: email + password) | Until Stage E: demo `localStorage` only — see `docs/PLAN.md` |
 | Hosting | VPS **amster** | PM2 + nginx, bind `127.0.0.1:3060` |
 | Domain | `cosmic-clock.info` / `www` | See `deploy/nginx/` |
@@ -53,21 +53,15 @@
 | Real auth / sessions | Not started |
 | Card limit (100) | Not started |
 
-## Planned data model (v1 sketch)
+## Data model (Prisma — Stage D)
 
-Subject to change when Prisma is added:
+See `prisma/schema.prisma`:
 
-```text
-User
-  id, email, passwordHash, createdAt, …
+- **User** — `id`, `email` (unique), `passwordHash`, timestamps
+- **Card** — `id`, `userId`, `name`, `day`, `month`, `year`, timestamps; cascade delete with user
+- Max **100 cards / user** — application rule in Stage F (not a DB constraint)
 
-Card
-  id, userId, name, day, month, year, createdAt, updatedAt
-  unique-ish constraints TBD
-  enforce ≤ 100 cards per userId
-```
-
-No separate “Calendar” entity in the prototype — **Card** is the unit. Product language may say “calendars” informally; in code/docs prefer **Card** unless a real calendar abstraction is introduced later.
+No separate “Calendar” entity — **Card** is the unit.
 
 ## Prototype → production mapping
 

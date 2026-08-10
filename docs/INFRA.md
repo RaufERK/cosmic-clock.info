@@ -53,6 +53,17 @@ docker compose up -d
 # DATABASE_URL=postgresql://cosmic_clock:cosmic_clock@127.0.0.1:5433/cosmic_clock
 ```
 
+### Prisma (schema + migrations)
+
+```bash
+npm run db:migrate    # create/apply migrations (dev)
+npm run db:generate   # regenerate client → src/generated/prisma
+npm run db:studio     # browse tables
+```
+
+Models (Stage D): `User`, `Card` — see `prisma/schema.prisma`.  
+Client helper: `src/lib/db.ts` (not wired to UI yet — Stage F).
+
 Stop:
 
 ```bash

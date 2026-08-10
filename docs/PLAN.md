@@ -106,21 +106,22 @@ No OAuth (Google etc.) in v1 unless we add it later on purpose.
 
 ## Stage D — Prisma + schema (no real auth yet)
 
-**Goal:** DB models ready; optional seed; still can keep UI on client until Stage E/F.
+**Goal:** DB models ready; UI still on client until Stage E/F.
 
-- [ ] Add Prisma + connect to local `DATABASE_URL`
-- [ ] Models: `User`, `Card` (fields aligned with UI)
-- [ ] First migration applied locally
-- [ ] Document commands in README / INFRA
-- [ ] Do **not** delete client cards UI yet — wire in Stage F
+- [x] Add Prisma 7 + connect to local `DATABASE_URL`
+- [x] Models: `User`, `Card` (fields aligned with UI)
+- [x] First migration applied locally (`init_user_card`)
+- [x] Document commands in README / INFRA
+- [x] Client helper `src/lib/db.ts` (unused by UI yet)
+- [x] Do **not** delete client cards UI yet — wire in Stage F
+- [x] Committed
 
 **You check**
 
-- [ ] `npx prisma migrate dev` works
-- [ ] Tables visible (Prisma Studio or `psql`)
-- [ ] App still runs
+- [x] Tables exist; app UI still works (unchanged)
+- [x] `npm run build` OK
 
-**Commit when:** schema + migration in git.
+**Status:** done.
 
 ---
 
@@ -214,7 +215,7 @@ No OAuth (Google etc.) in v1 unless we add it later on purpose.
 
 ## Current position
 
-**Done:** Stage A, B, C.  
-**Next:** **Stage D** — Prisma + schema (local Postgres).
+**Done:** Stage A–D.  
+**Next:** **Stage E** — real auth (Auth.js + Postgres).
 
-Say when to start D.
+Say when to start E.

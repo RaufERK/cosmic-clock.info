@@ -40,6 +40,7 @@ module.exports = {
         'source ~/.nvm/nvm.sh && nvm use 24',
         `ln -sfn ${DEPLOY_PATH}/shared/.env ./.env`,
         'npm ci --include=dev',
+        'npx prisma migrate deploy',
         'npm run build',
         'pm2 startOrReload ecosystem.config.cjs --env production',
         'pm2 save',

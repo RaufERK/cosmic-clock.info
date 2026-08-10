@@ -43,8 +43,12 @@ Optional local Postgres (port **5433**):
 
 ```bash
 docker compose up -d
-# DATABASE_URL from .env.example — see docs/INFRA.md
+cp .env.example .env   # if needed
+npm run db:migrate     # Prisma migrations
+npm run db:studio      # optional GUI
 ```
+
+See `docs/INFRA.md` and `prisma/schema.prisma`.
 
 ## Deploy
 
