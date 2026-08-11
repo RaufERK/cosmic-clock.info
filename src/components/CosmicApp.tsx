@@ -66,7 +66,7 @@ export function CosmicApp() {
   const [actionInfo, setActionInfo] = useState<string | null>(null);
 
   const userLogin = session?.user?.login ?? null;
-  const isLoggedIn = Boolean(session?.user?.id);
+  const isLoggedIn = Boolean(session?.user?.id && session?.user?.login);
   const sessionReady = status !== "loading";
 
   function cardErrorMessage(result: CardActionResult): string {
@@ -117,7 +117,7 @@ export function CosmicApp() {
         setIsAdding(false);
         setReady(false);
 
-        if (!session?.user?.id) {
+        if (!session?.user?.id || !session.user.login) {
           if (!cancelled) {
             setCards(loadOrSeedGuestCards(t("exampleSummit")));
             setReady(true);

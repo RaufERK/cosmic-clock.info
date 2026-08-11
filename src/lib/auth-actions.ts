@@ -34,6 +34,16 @@ function isNextRedirect(error: unknown): boolean {
   );
 }
 
+/** Auth.js failed credentials (wrong login/password) — not a real crash. */
+function isCredentialsFailure(error: unknown): boolean {
+  if (error instanceof AuthError) return true;
+  if (typeof error !== "object" || error === null) return false;
+  const typed = error as { type?: string; name?: string };
+  return (
+    typed.type === "CredentialsSignin" || typed.name === "CredentialsSignin"
+  );
+}
+
 async function signInCredentials(
   login: string,
   password: string,
@@ -49,9 +59,10 @@ async function signInCredentials(
     if (isNextRedirect(error)) {
       return { ok: true };
     }
-    if (error instanceof AuthError) {
+    if (isCredentialsFailure(error)) {
       return { ok: false, error: "invalid" };
     }
+    console.error("[auth-actions] signIn unexpected", error);
     return { ok: false, error: "unknown" };
   }
 }
