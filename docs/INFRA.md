@@ -27,7 +27,7 @@ Checked via `ssh amster`:
 - PostgreSQL **14.22**, service **active**
 - Listens on **`127.0.0.1:5432` only** (not public) — Next.js on the same host connects locally
 - Existing DB/role example: `spokenword` / `spokenword`
-- **No `cosmic_clock` DB yet** — create when Phase 2 starts (as root/`postgres`)
+- **`cosmic_clock` DB + role** — Stage J (credentials only in `shared/.env`)
 
 Typical production URL shape (values live only in `shared/.env`):
 
