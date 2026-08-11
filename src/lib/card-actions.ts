@@ -93,7 +93,7 @@ export async function listMyCardsAction(): Promise<CardActionResult> {
   try {
     const rows = await prisma.card.findMany({
       where: { userId },
-      orderBy: { updatedAt: "desc" },
+      orderBy: [{ year: "asc" }, { month: "asc" }, { day: "asc" }],
     });
     return { ok: true, cards: rows.map(toCardData) };
   } catch {
@@ -275,7 +275,7 @@ export async function mergeLocalCardsAction(
 
     const rows = await prisma.card.findMany({
       where: { userId },
-      orderBy: { updatedAt: "desc" },
+      orderBy: [{ year: "asc" }, { month: "asc" }, { day: "asc" }],
     });
 
     const added = rows.filter((r) => !beforeIds.has(r.id)).length;

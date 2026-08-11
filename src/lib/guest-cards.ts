@@ -2,6 +2,7 @@ import {
   GUEST_EXAMPLE_SEED,
   type CardData,
   cardDateKey,
+  sortCardsByStartDate,
 } from "@/lib/cards";
 import { validateStartDate } from "@/lib/start-date";
 
@@ -39,7 +40,7 @@ export function readGuestCards(): LocalCard[] {
   try {
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter(isLocalCard);
+    return sortCardsByStartDate(parsed.filter(isLocalCard));
   } catch {
     return [];
   }
@@ -47,7 +48,10 @@ export function readGuestCards(): LocalCard[] {
 
 export function writeGuestCards(cards: LocalCard[]): void {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
+  window.localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(sortCardsByStartDate(cards)),
+  );
 }
 
 /**
@@ -111,7 +115,7 @@ export function addGuestCard(
     year: data.year,
     updatedAt: nowIso(),
   };
-  const updated = [...cards, next];
+  const updated = sortCardsByStartDate([...cards, next]);
   writeGuestCards(updated);
   return updated;
 }
@@ -129,17 +133,19 @@ export function updateGuestCard(
   }
   const index = cards.findIndex((c) => c.id === id);
   if (index < 0) return "not_found";
-  const updated = cards.map((c) =>
-    c.id === id
-      ? {
-          ...c,
-          name: data.name.trim(),
-          day: data.day,
-          month: data.month,
-          year: data.year,
-          updatedAt: nowIso(),
-        }
-      : c,
+  const updated = sortCardsByStartDate(
+    cards.map((c) =>
+      c.id === id
+        ? {
+            ...c,
+            name: data.name.trim(),
+            day: data.day,
+            month: data.month,
+            year: data.year,
+            updatedAt: nowIso(),
+          }
+        : c,
+    ),
   );
   writeGuestCards(updated);
   return updated;

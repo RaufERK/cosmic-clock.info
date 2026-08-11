@@ -22,7 +22,7 @@ import {
   type MergeCardsResult,
 } from "@/lib/card-actions";
 import { touchLastSeenAction } from "@/lib/auth-actions";
-import { type CardData, isGuestExampleSeedDate } from "@/lib/cards";
+import { type CardData, isGuestExampleSeedDate, sortCardsByStartDate } from "@/lib/cards";
 import {
   addGuestCard,
   clearGuestCards,
@@ -238,7 +238,7 @@ export function CosmicApp() {
         return;
       }
       if (result.card) {
-        setCards((prev) => [...prev, result.card!]);
+        setCards((prev) => sortCardsByStartDate([...prev, result.card!]));
       }
       setIsAdding(false);
     });
@@ -279,7 +279,9 @@ export function CosmicApp() {
       }
       if (result.card) {
         setCards((prev) =>
-          prev.map((card) => (card.id === id ? result.card! : card)),
+          sortCardsByStartDate(
+            prev.map((card) => (card.id === id ? result.card! : card)),
+          ),
         );
       }
       setEditingId(null);

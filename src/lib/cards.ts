@@ -40,3 +40,19 @@ export function cardDateKey(card: {
 }): string {
   return `${card.year}-${card.month}-${card.day}`;
 }
+
+/** Display order: older start dates first. */
+export function compareCardsByStartDate(
+  a: { year: number; month: number; day: number },
+  b: { year: number; month: number; day: number },
+): number {
+  if (a.year !== b.year) return a.year - b.year;
+  if (a.month !== b.month) return a.month - b.month;
+  return a.day - b.day;
+}
+
+export function sortCardsByStartDate<
+  T extends { year: number; month: number; day: number },
+>(cards: T[]): T[] {
+  return [...cards].sort(compareCardsByStartDate);
+}
