@@ -3,6 +3,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { MAX_CARDS_PER_USER, type CardData } from "@/lib/cards";
+import { validateStartDate } from "@/lib/start-date";
 
 export type CardInput = {
   name: string;
@@ -38,9 +39,7 @@ function validateCardInput(input: CardInput): CardInput | null {
   const name = input.name.trim();
   const { day, month, year } = input;
   if (!name) return null;
-  if (!Number.isInteger(day) || day < 1 || day > 31) return null;
-  if (!Number.isInteger(month) || month < 1 || month > 12) return null;
-  if (!Number.isInteger(year) || year < 1 || year > 9999) return null;
+  if (validateStartDate(year, month, day) !== null) return null;
   return { name, day, month, year };
 }
 

@@ -26,8 +26,10 @@ Read these before changing product behavior or structure:
 1. **`CCLOCK/` is design/UX reference only.** Implement in `src/` (+ `messages/`). Do not ship or typecheck the Vite prototype as the production app.
 2. **Locales:** `en`, `ru`, `es`, `pt` via `next-intl`. User-facing copy belongs in `messages/*.json`.
 3. **v1 “astrology”** = date → year/month/day clock hands (see Product). No ephemeris engine unless the roadmap phase explicitly says so.
-4. **Card limit (planned):** 100 per user — enforce when persistence exists.
+4. **Card limit:** 100 per user — enforce server-side (including migrate/merge).
 5. Prefer small, focused changes aligned with the **current stage in `docs/PLAN.md`**. Do not start the next stage until the user verifies and commits the current one.
+6. **Auth doctrine:** login = username (not email); no SMTP / password-reset mail; change-password when signed in; session ~30d; `lastSeenAt`. See `docs/PLAN.md` / `docs/PRODUCT.md`.
+7. **Cards doctrine:** one start date per user; guest → localStorage (seed 1958-08-07); on register/login → merge by date then clear localStorage; signed-in → DB only.
 
 ## Default working language
 

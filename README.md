@@ -23,8 +23,8 @@ Users create **life-event cards** (birth, marriage, job, project, …). Each car
 
 - Next.js App Router + TypeScript + Tailwind
 - `next-intl` — `en` / `ru` / `es` / `pt`
-- Auth stub — `localStorage` demo session (no DB yet)
-- Planned: PostgreSQL + Prisma + real auth
+- Auth.js — login + password (username, not email); Postgres + Prisma
+- Guest cards → localStorage; signed-in → DB (migrate/merge on auth — Stage I)
 - PM2 + nginx on amster (`127.0.0.1:3060`)
 
 ## Local

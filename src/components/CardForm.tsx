@@ -1,10 +1,15 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useId, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { ChevronLeft, Trash2, X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { daysInMonth } from "@/lib/cosmic-clock-math";
+import { daysInMonth, todayCivil } from "@/lib/cosmic-clock-math";
+import {
+  isDaySelectable,
+  isYearMonthNotFuture,
+  validateStartDate,
+} from "@/lib/start-date";
 
 export type CardFormValues = {
   name: string;
@@ -38,6 +43,11 @@ export function CardForm({
   const t = useTranslations("app");
   const monthNames = t.raw("monthNames") as string[];
   const weekdayShort = t.raw("weekdayShort") as string[];
+  const nameId = useId();
+  const yearId = useId();
+  const monthId = useId();
+
+  const today = todayCivil();
 
   const [name, setName] = useState(initialData?.name ?? "");
   const [yearText, setYearText] = useState(
@@ -49,10 +59,11 @@ export function CardForm({
   const [day, setDay] = useState<number | null>(initialData?.day ?? null);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<Step>("details");
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const yearNum = Number.parseInt(yearText, 10);
   const yearValid =
-    Number.isInteger(yearNum) && yearNum >= 1000 && yearNum <= 9999;
+    Number.isInteger(yearNum) && yearNum >= 0 && yearNum <= today.year;
   const nameOk = name.trim().length > 0;
   const monthOk = month !== null;
   const detailsComplete = nameOk && yearValid && monthOk;
@@ -75,25 +86,72 @@ export function CardForm({
     return cells;
   }, [leadEmpty, dayCount]);
 
+  function startDateMessage(
+    code: ReturnType<typeof validateStartDate>,
+  ): string {
+    switch (code) {
+      case null:
+        return "";
+      case "incomplete":
+        return t("dateErrorIncomplete");
+      case "invalid_day":
+        return t("dateErrorInvalid");
+      case "year":
+        return t("dateErrorYear");
+      case "future":
+        return t("dateErrorFuture");
+      default: {
+        const _exhaustive: never = code;
+        return _exhaustive;
+      }
+    }
+  }
+
   function goBack() {
     setError(null);
+    setConfirmingDelete(false);
     setStep("details");
   }
 
   function goForward() {
     setError(null);
+    setConfirmingDelete(false);
     if (!detailsComplete || month === null) {
       setError(t("dateErrorIncomplete"));
       return;
     }
+    if (!yearValid) {
+      setError(t("dateErrorYear"));
+      return;
+    }
+    if (!isYearMonthNotFuture(yearNum, month, today)) {
+      setError(t("dateErrorFuture"));
+      return;
+    }
     if (day !== null && day > daysInMonth(yearNum, month)) {
+      setDay(null);
+    }
+    if (
+      day !== null &&
+      !isDaySelectable(yearNum, month, day, today)
+    ) {
       setDay(null);
     }
     setStep("day");
   }
 
   function onYearChange(value: string) {
-    setYearText(value.replace(/\D/g, "").slice(0, 4));
+    const next = value.replace(/\D/g, "").slice(0, 4);
+    setYearText(next);
+    const nextYear = Number.parseInt(next, 10);
+    if (
+      Number.isInteger(nextYear) &&
+      month !== null &&
+      !isYearMonthNotFuture(nextYear, month, today)
+    ) {
+      setMonth(null);
+      setDay(null);
+    }
   }
 
   function handleSubmit(event?: FormEvent) {
@@ -103,8 +161,9 @@ export function CardForm({
       setError(t("dateErrorIncomplete"));
       return;
     }
-    if (day > daysInMonth(yearNum, month)) {
-      setError(t("dateErrorInvalid"));
+    const dateError = validateStartDate(yearNum, month, day, today);
+    if (dateError !== null) {
+      setError(startDateMessage(dateError));
       return;
     }
     onSave({
@@ -136,7 +195,7 @@ export function CardForm({
             onClick={goBack}
             className="flex items-center gap-1 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-sm font-bold text-white/70 transition-colors hover:bg-white/10 hover:text-white"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-4 w-4" aria-hidden />
             {t("formBack")}
           </button>
         ) : (
@@ -146,9 +205,10 @@ export function CardForm({
           <button
             type="button"
             onClick={onCancel}
+            aria-label={t("formCancel")}
             className="rounded-full p-2 transition-colors hover:bg-white/10"
           >
-            <X className="h-5 w-5 text-white/50" />
+            <X className="h-5 w-5 text-white/50" aria-hidden />
           </button>
         ) : null}
       </div>
@@ -160,10 +220,14 @@ export function CardForm({
         {step === "details" ? (
           <div className="space-y-3">
             <div className="space-y-1">
-              <label className="ml-1 text-xs font-bold uppercase tracking-widest text-white/70">
+              <label
+                htmlFor={nameId}
+                className="ml-1 text-xs font-bold uppercase tracking-widest text-white/70"
+              >
                 {t("labelName")}
               </label>
               <input
+                id={nameId}
                 type="text"
                 placeholder={t("namePlaceholder")}
                 autoFocus={isNew}
@@ -174,10 +238,14 @@ export function CardForm({
             </div>
 
             <div className="space-y-1">
-              <label className="ml-1 text-xs font-bold uppercase tracking-widest text-white/70">
+              <label
+                htmlFor={yearId}
+                className="ml-1 text-xs font-bold uppercase tracking-widest text-white/70"
+              >
                 {t("labelYear")}
               </label>
               <input
+                id={yearId}
                 type="text"
                 inputMode="numeric"
                 autoComplete="bday-year"
@@ -189,10 +257,14 @@ export function CardForm({
             </div>
 
             <div className="space-y-1">
-              <label className="ml-1 text-xs font-bold uppercase tracking-widest text-white/70">
+              <label
+                htmlFor={monthId}
+                className="ml-1 text-xs font-bold uppercase tracking-widest text-white/70"
+              >
                 {t("labelMonth")}
               </label>
               <select
+                id={monthId}
                 className={fieldClass}
                 value={month ?? ""}
                 onChange={(e) => {
@@ -203,15 +275,22 @@ export function CardForm({
                 <option value="" className="bg-indigo-950 text-white">
                   {t("selectMonth")}
                 </option>
-                {monthNames.map((label, index) => (
-                  <option
-                    key={label}
-                    value={index + 1}
-                    className="bg-indigo-950 text-white"
-                  >
-                    {label}
-                  </option>
-                ))}
+                {monthNames.map((label, index) => {
+                  const monthValue = index + 1;
+                  const disabled =
+                    yearValid &&
+                    !isYearMonthNotFuture(yearNum, monthValue, today);
+                  return (
+                    <option
+                      key={label}
+                      value={monthValue}
+                      disabled={disabled}
+                      className="bg-indigo-950 text-white"
+                    >
+                      {label}
+                    </option>
+                  );
+                })}
               </select>
             </div>
           </div>
@@ -225,9 +304,9 @@ export function CardForm({
               </p>
             ) : null}
 
-            <label className="ml-1 text-xs font-bold uppercase tracking-widest text-white/70">
+            <p className="ml-1 text-xs font-bold uppercase tracking-widest text-white/70">
               {t("labelDay")}
-            </label>
+            </p>
 
             <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-bold tracking-wide text-white/40">
               {weekdayShort.map((label) => (
@@ -246,6 +325,7 @@ export function CardForm({
                 if (d === null) {
                   return <div key={`e-${index}`} className="aspect-square" />;
                 }
+                const selectable = isDaySelectable(yearNum, month!, d, today);
                 const selected = day === d;
                 return (
                   <button
@@ -253,11 +333,17 @@ export function CardForm({
                     type="button"
                     role="option"
                     aria-selected={selected}
-                    onClick={() => setDay(d)}
+                    aria-disabled={!selectable}
+                    disabled={!selectable}
+                    onClick={() => {
+                      if (selectable) setDay(d);
+                    }}
                     className={`aspect-square rounded-lg text-sm font-bold transition-all ${
                       selected
                         ? "bg-blue-500 text-white shadow-[0_0_10px_rgba(59,130,246,0.45)]"
-                        : "bg-white/10 text-white/80 hover:bg-white/20 hover:text-white"
+                        : selectable
+                          ? "bg-white/10 text-white/80 hover:bg-white/20 hover:text-white"
+                          : "cursor-not-allowed bg-white/5 text-white/25"
                     }`}
                   >
                     {d}
@@ -287,14 +373,38 @@ export function CardForm({
           </button>
 
           {!isNew && onDelete ? (
-            <button
-              type="button"
-              onClick={onDelete}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-red-500/30 py-3 text-sm font-bold text-red-400 transition-all hover:border-red-500/60 hover:bg-red-500/10"
-            >
-              <Trash2 className="h-4 w-4" />
-              {t("deleteCard")}
-            </button>
+            confirmingDelete ? (
+              <div className="space-y-2 rounded-2xl border border-red-500/30 bg-red-500/5 p-3">
+                <p className="text-center text-sm font-medium text-red-200">
+                  {t("confirmDelete")}
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setConfirmingDelete(false)}
+                    className="flex-1 rounded-xl border border-white/20 py-2.5 text-sm font-bold text-white/80 transition-all hover:bg-white/10"
+                  >
+                    {t("confirmDeleteCancel")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onDelete}
+                    className="flex-1 rounded-xl bg-red-500/80 py-2.5 text-sm font-bold text-white transition-all hover:bg-red-500"
+                  >
+                    {t("confirmDeleteYes")}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConfirmingDelete(true)}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-red-500/30 py-3 text-sm font-bold text-red-400 transition-all hover:border-red-500/60 hover:bg-red-500/10"
+              >
+                <Trash2 className="h-4 w-4" aria-hidden />
+                {t("deleteCard")}
+              </button>
+            )
           ) : null}
         </div>
       ) : null}

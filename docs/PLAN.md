@@ -7,9 +7,10 @@
 3. We **commit** that stage (you ask for the commit).
 4. We mark the stage `[x]` here.
 5. Deploy is **optional** until we deliberately want production. Local Docker + `npm run dev` is enough.
+6. Stages **G–I** may be reordered for developer convenience (nothing on prod yet). Prefer the order below.
 
 Living checklist — edit this file as we go.  
-Stack / i18n / auth details: also in [`ARCHITECTURE.md`](ARCHITECTURE.md).
+Stack / i18n / auth / guest storage: also [`ARCHITECTURE.md`](ARCHITECTURE.md), product rules: [`PRODUCT.md`](PRODUCT.md).
 
 ---
 
@@ -22,7 +23,7 @@ Stack / i18n / auth details: also in [`ARCHITECTURE.md`](ARCHITECTURE.md).
 | i18n | **next-intl** — `en` / `ru` / `es` / `pt`, URL prefix always (`/en/...`) |
 | DB | **PostgreSQL** — local Docker port **5433**; server PG later |
 | ORM | **Prisma** |
-| Auth | **Auth.js (NextAuth)** — email + password (Credentials), session cookies |
+| Auth | **Auth.js (NextAuth)** — **login + password** (Credentials), session cookies. Login is **any username string**, not email |
 | Host | amster + PM2 + nginx (when we choose to deploy) |
 | Design ref | `CCLOCK/` only — implement in `src/` |
 
@@ -34,15 +35,50 @@ Stack / i18n / auth details: also in [`ARCHITECTURE.md`](ARCHITECTURE.md).
 - Strings: only in `messages/en.json`, `ru.json`, `es.json`, `pt.json` (same keys in all four)
 - Language switcher in the header; keep the current path when switching
 
-### Authorization (auth)
+### Authorization (auth) — doctrine
 
-| Phase | What |
-|-------|------|
-| Now (until Stage E) | Demo session in `localStorage` — enough to build UI |
-| Stage E | Real **register / login / logout** with Auth.js + password hash in Postgres + httpOnly cookie session |
-| Cards | After Stage E: only the logged-in user’s cards; max **100** cards per user |
+| Rule | Detail |
+|------|--------|
+| Identifier | **Login** = any non-empty username string (not required to be an email) |
+| Password | Hashed in Postgres; session via httpOnly cookie (Auth.js JWT) |
+| Session | Explicit **`maxAge` ≈ 30 days**; logout or expiry → sign in again |
+| No email | No mailbox, no SMTP, no email verification |
+| No password reset | If the user forgets the password → create a **new** account and re-enter cards |
+| Change password | When signed in, click own login → modal: current / new / confirm new |
+| Activity | `User.lastSeenAt` — set on register/login; refresh at most **once per day** on authenticated visit (e.g. loading cards) |
+| Stale accounts | Delete users with `lastSeenAt` older than **2 years** via `npm` script run from **deploy** (same command usable by hand on server). Keep `User.createdAt` for ops |
+| Card limit | Max **100** cards per user (after date-dedupe; excess truncated — see below) |
 
 No OAuth (Google etc.) in v1 unless we add it later on purpose.
+
+### Cards storage — doctrine
+
+| Who | Where | Behavior |
+|-----|--------|----------|
+| First visit (guest) | **localStorage** | Seed **one** example if storage empty (code constant, not env). Guest may edit/delete/create — all in localStorage |
+| Example card | Hardcoded | Start date **1958-08-07** (The Summit Lighthouse founded); localized name in `messages/*` |
+| Signed-in | **Postgres** | Source of truth; multi-device |
+| Register / login | migrate + merge | Import local → DB (merge with existing on login) → **clear** localStorage → show summary message |
+| After migrate/merge | DB only | UI reads/writes Postgres only |
+
+### One start date = one card (per user)
+
+| Situation | Behavior |
+|-----------|----------|
+| Create or edit to a date that already exists | **Block**; message e.g. “A calendar with this date already exists” |
+| Merge local ↔ DB, same date | Keep **one** card; take **name** from the row with newer `updatedAt`; inform user (counts) |
+| After dedupe still **> 100** | Keep **100** newest by `updatedAt`; **drop the rest** (no undo). Extremely rare |
+| Same name, different dates | Allowed (different events) |
+
+DB: **`UNIQUE (userId, year, month, day)`**. Cards keep `createdAt` + `updatedAt` (freshness = `updatedAt`). Guest localStorage cards store `updatedAt` too.
+
+i18n: agent writes **en / ru / es / pt** for these short messages at implementation time (no need for the user to translate).
+
+### Start date — doctrine
+
+- Valid calendar day for month/year
+- `year >= 0` (no negative years)
+- Start date must be **≤ today** (year / month / day) — future start dates are invalid (clock math assumes past→now)
 
 ---
 
@@ -144,7 +180,8 @@ No OAuth (Google etc.) in v1 unless we add it later on purpose.
 - [x] Wrong password fails cleanly
 - [x] Session survives refresh
 
-**Status:** done.
+**Status:** done.  
+**Note:** shipped with **email** as identifier — replaced by **login** in Stage H.
 
 ---
 
@@ -156,7 +193,7 @@ No OAuth (Google etc.) in v1 unless we add it later on purpose.
 - [x] List/create/edit/delete only own cards
 - [x] Enforce **max 100 cards / user** (server-side)
 - [x] Guest sees **2 example cards** (not in DB); logged-in sees **only own** cards (no examples)
-- [x] Remove localStorage card storage
+- [x] Remove localStorage card storage (interim — guest localStorage returns in Stage I)
 - [x] Loading / error states for network
 - [x] Committed
 
@@ -169,34 +206,84 @@ No OAuth (Google etc.) in v1 unless we add it later on purpose.
 - [x] Logout → examples again
 - [x] Delete works permanently
 
-**Status:** done.
+**Status:** done.  
+**Note:** guest was “examples only, no local edit persist” — superseded by Stage I doctrine.
 
 ---
 
-## Stage G — Hardening (calm polish)
+## Stage G — Date rules + hardening polish
 
-- [ ] Date validation (valid day for month/year)
-- [ ] Confirm before delete
-- [ ] Empty / error / success copy polish (4 languages)
-- [ ] Accessibility basics (focus, labels)
-- [ ] Quick pass on mobile layout
+**Goal:** start-date doctrine + calm UX polish.
+
+- [x] Start date: valid day-for-month; `year >= 0`; date **≤ today** (`src/lib/start-date.ts` + CardForm + server actions)
+- [x] Confirm before delete
+- [x] Empty / error / success copy polish (4 languages) — date/delete messages
+- [x] Accessibility basics (focus, labels on form fields)
+- [x] Quick pass on mobile layout (form/calendar usable; no layout rewrite)
 
 **You check**
 
-- [ ] Bad dates blocked
+- [ ] Future / negative / invalid dates blocked
+- [ ] Delete asks for confirm
 - [ ] Mobile usable
 - [ ] No obvious console errors on happy path
 
-**Commit when:** polish OK.
+**Commit when:** polish OK.  
+**Status:** implemented — awaiting your verify + commit.
 
 ---
 
-## Stage H — Server DB + optional deploy (only when you want)
+## Stage H — Auth doctrine (login, not email)
+
+**Goal:** align shipped auth with product doctrine (no email / no reset).
+
+- [ ] Schema: `User.email` → `User.login` (unique); add `lastSeenAt`; wipe/migrate local DB (dev test account OK to drop)
+- [ ] Session `maxAge` ≈ **30 days**
+- [ ] Register / login forms use **login** field (any username string)
+- [ ] Touch `lastSeenAt` on register/login; throttle refresh **≤ once per day** when signed-in
+- [ ] Copy in all 4 locales (no “email” wording; no-recovery hint)
+- [ ] Change-password modal when clicking own login (current / new / confirm)
+- [ ] Script `users:prune-stale` (delete `lastSeenAt` older than 2 years) — wire into deploy later in J
+
+**You check**
+
+- [ ] Register with non-email login works
+- [ ] Change password works; wrong current password fails
+- [ ] No SMTP / mail code anywhere
+
+**Commit when:** auth doctrine matches docs.
+
+---
+
+## Stage I — Guest localStorage + migrate/merge + unique dates
+
+**Goal:** guests use cards in localStorage; account syncs; one date = one card.
+
+- [ ] Seed **one** example into localStorage when empty: **1958-08-07** + i18n name; allow edit/delete/create
+- [ ] Guest CRUD persists in localStorage (`updatedAt` on each card)
+- [ ] DB: `UNIQUE (userId, year, month, day)`
+- [ ] Create/edit: block duplicate dates with clear message (4 locales)
+- [ ] On **register** / **login**: merge by date (newer `updatedAt` wins name) → truncate to 100 by `updatedAt` → clear localStorage → summary message
+- [ ] Signed-in path: Postgres only
+- [ ] Loading / error states for migrate
+
+**You check**
+
+- [ ] Guest: one Summit example; edits survive refresh
+- [ ] Cannot create second card with same date (guest + signed-in)
+- [ ] Register/login merge + messages; localStorage cleared
+- [ ] Second device (logged in) sees DB cards only
+
+**Commit when:** guest→account flow verified.
+
+---
+
+## Stage J — Server DB + optional deploy (only when you want)
 
 - [ ] On `amster`: create role + DB `cosmic_clock`
 - [ ] Put `DATABASE_URL` + `AUTH_SECRET` in `shared/.env`
 - [ ] Run migrations on server
-- [ ] Deploy via PM2 when you ask
+- [ ] Deploy via PM2 when you ask; run **`users:prune-stale`** as a deploy step
 - [ ] Smoke-test https://cosmic-clock.info
 
 **You check**
@@ -214,14 +301,21 @@ No OAuth (Google etc.) in v1 unless we add it later on purpose.
 - Time / place / timezone
 - Real ephemeris / natal engine
 - OAuth, billing, public share links
+- Email / SMTP / password-reset by mail (explicitly deferred — not planned for v1)
 
 ---
 
 ## Current position
 
-**Done:** Stage A–F.  
-**Next:** **Stage G** — polish (date validation, confirm delete, mobile, copy).
+**Done:** Stage A–F (interim: email auth + guest examples only, no local persist).  
+**In progress:** **Stage G** — implemented; verify then commit.
 
-Then **H** — server DB + optional deploy (when you want).
+**Next after G:**
 
-Say when to start G.
+1. **H** — login (not email) + change password + lastSeenAt  
+2. **I** — guest localStorage + merge + UNIQUE date  
+3. **J** — server deploy + prune script on deploy  
+
+**Why this order:** G is independent validation; H changes the User schema (needed before I’s register/login merge); I builds on both. Order of G vs H could swap, but I should stay after H.
+
+Say when G is OK to commit / when to start H.

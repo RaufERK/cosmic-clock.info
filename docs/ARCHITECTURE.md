@@ -9,7 +9,7 @@
 | i18n | **next-intl** | Locales: `en`, `ru`, `es`, `pt` (`localePrefix: "always"`) |
 | DB | **PostgreSQL** | Local: Docker Compose (`docs/INFRA.md`); server: system PG 14 |
 | ORM | **Prisma 7** | Client in `src/generated/prisma`; helper `src/lib/db.ts` |
-| Auth | **Auth.js** (Credentials: email + password) | Until Stage E: demo `localStorage` only — see `docs/PLAN.md` |
+| Auth | **Auth.js** (Credentials: **login** + password) | Login = username; session ~30d; `lastSeenAt`; **no email/SMTP**. See `docs/PLAN.md` |
 | Hosting | VPS **amster** | PM2 + nginx, bind `127.0.0.1:3060` |
 | Domain | `cosmic-clock.info` / `www` | See `deploy/nginx/` |
 
@@ -39,37 +39,65 @@
 3. **Do not treat the Vite prototype as production.** No Express+Vite dual stack for the shipped site.
 4. **i18n:** all user-facing strings go through `messages/*` in the Next app (prototype keeps inline `CCLOCK/src/app/i18n.ts` — do not copy that pattern into production).
 5. **Deploy:** production process listens on `127.0.0.1:$PORT` (3060); nginx terminates TLS.
+6. **Auth:** no email, no password-reset mail. Identifier is `login`. Change-password UI only when signed in.
+7. **Cards:** guest → localStorage; signed-in → Postgres. On register/login, migrate/merge local → DB then clear localStorage.
 
-## Current scaffold status (as of docs writing)
+## Implementation status (summary)
 
 | Area | Status |
 |------|--------|
 | Locale routing + header switcher | Done |
-| Home stub | Done |
-| Login demo (`localStorage`) | Done |
-| Cards page | Stub (“coming soon”) |
-| CosmicClock port | Not started |
-| PostgreSQL / Prisma | Not started |
-| Real auth / sessions | Not started |
-| Card limit (100) | Not started |
+| CosmicClock + cards UI | Done |
+| Prisma `User` / `Card` + local migrate | Done |
+| Auth.js register / login / logout | Done (**still email** until Stage H) |
+| Card CRUD in Postgres (signed-in) | Done |
+| Guest localStorage + migrate/merge | Planned Stage I |
+| Login (not email) + change password | Planned Stage H |
+| Start-date doctrine (`year >= 0`, ≤ today) | Planned Stage G |
+| Server deploy | Planned Stage J |
 
-## Data model (Prisma — Stage D)
+Living detail: [`docs/PLAN.md`](PLAN.md).
 
-See `prisma/schema.prisma`:
+## Data model (Prisma)
 
-- **User** — `id`, `email` (unique), `passwordHash`, timestamps
-- **Card** — `id`, `userId`, `name`, `day`, `month`, `year`, timestamps; cascade delete with user
-- Max **100 cards / user** — application rule in Stage F (not a DB constraint)
+See `prisma/schema.prisma` (current) and Stages H/I migrations:
+
+- **User** — today: `email` unique; **target:** `login` unique + `passwordHash` + `createdAt` + `lastSeenAt`
+- **Card** — `id`, `userId`, `name`, `day`, `month`, `year`, `createdAt`, `updatedAt`; cascade delete with user
+- **Unique:** `(userId, year, month, day)` — one start date per user
+- Max **100 cards / user** — after date-dedupe; truncate by newest `updatedAt`
 
 No separate “Calendar” entity — **Card** is the unit.
+
+## Card storage flow
+
+```
+Guest (no session)
+  └─ if localStorage empty → seed one card (1958-08-07) from code constant
+  └─ edit/create/delete → localStorage (with updatedAt)
+
+Register or Login
+  └─ merge by date (newer updatedAt wins name)
+  └─ keep ≤100 by updatedAt; drop rest
+  └─ clear localStorage; show summary message
+
+Signed-in
+  └─ Postgres only (multi-device)
+  └─ duplicate date on create/edit → reject with message
+```
+
+## Stale user prune
+
+- Script (e.g. `npm run users:prune-stale`): delete users with `lastSeenAt` older than 2 years
+- Run from **deploy** (monthly-ish); same command usable manually on the server
 
 ## Prototype → production mapping
 
 | Prototype | Production target |
 |-----------|-------------------|
-| `CCLOCK/.../App.tsx` card grid | `src/app/[locale]/cards` (+ components) |
-| `CosmicClock.tsx` | `src/components/CosmicClock.tsx` (or similar) |
+| `CCLOCK/.../App.tsx` card grid | Home single-screen UI in `src/` |
+| `CosmicClock.tsx` | `src/components/CosmicClock.tsx` |
 | `CardForm.tsx` | Shared create/edit form component |
-| `AuthModal.tsx` | Prefer dedicated `/login` (and later `/register`) routes |
+| `AuthModal.tsx` | Auth modal (login/register); change-password modal when signed in |
 | `LangContext` + inline strings | `next-intl` + `messages/*.json` |
-| In-memory card state | Client state → then Postgres via API/Server Actions |
+| In-memory / local cards | Guest localStorage → Postgres after auth (Stages F/I) |
