@@ -79,8 +79,7 @@ dayRotation   = monthFraction * 360
 
 - Ephemeris / Swiss Ephemeris / natal planet positions
 - Houses, aspects, signs as planetary astrology
-- The old Figma-prototype formula that mapped absolute calendar digits  
-  (`year % 100`, calendar month, day-of-month) — that was a **placeholder**, not Prophet theory
+- Mapping absolute calendar digits (`year % 100`, calendar month, day-of-month) to hands — that is **not** Prophet theory
 
 ## Code
 

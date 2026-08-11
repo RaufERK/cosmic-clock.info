@@ -12,8 +12,6 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Design prototype — not part of the production Next app
-    "CCLOCK/**",
     // Prisma generated client
     "src/generated/**",
   ]),

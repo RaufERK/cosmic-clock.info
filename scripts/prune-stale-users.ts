@@ -2,7 +2,7 @@
  * Delete users whose lastSeenAt is older than 2 years (and their cards via cascade).
  *
  * Usage: npm run users:prune-stale
- * Wire into deploy after migrate (Stage J).
+ * Wire into deploy after migrate.
  */
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
