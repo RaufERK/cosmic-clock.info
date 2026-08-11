@@ -5,27 +5,25 @@ import { AnimatePresence, motion } from "motion/react";
 import { X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import {
-  loginAction,
-  registerAction,
+  changePasswordAction,
   type AuthActionResult,
 } from "@/lib/auth-actions";
 
 type Props = {
-  mode: "login" | "register";
+  login: string;
   onClose: () => void;
-  onSuccess: () => void;
 };
 
-export function AuthModal({ mode: initialMode, onClose, onSuccess }: Props) {
+export function ChangePasswordModal({ login, onClose }: Props) {
   const t = useTranslations("app");
-  const [mode, setMode] = useState(initialMode);
-  const [login, setLogin] = useState("");
-  const [password, setPassword] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   const [pending, startTransition] = useTransition();
-  const loginId = useId();
-  const passwordId = useId();
+  const currentId = useId();
+  const newId = useId();
   const confirmId = useId();
 
   function errorMessage(result: AuthActionResult): string {
@@ -55,19 +53,22 @@ export function AuthModal({ mode: initialMode, onClose, onSuccess }: Props) {
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
+    setSuccess(false);
 
     startTransition(async () => {
-      const result =
-        mode === "register"
-          ? await registerAction(login, password, confirm)
-          : await loginAction(login, password);
-
+      const result = await changePasswordAction(
+        currentPassword,
+        newPassword,
+        confirm,
+      );
       if (!result.ok) {
         setError(errorMessage(result));
         return;
       }
-
-      onSuccess();
+      setSuccess(true);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirm("");
     });
   }
 
@@ -102,78 +103,75 @@ export function AuthModal({ mode: initialMode, onClose, onSuccess }: Props) {
             <X className="h-4 w-4 text-white/50" aria-hidden />
           </button>
 
-          <h2 className="mb-2 text-xl font-bold tracking-wide text-white">
-            {mode === "login" ? t("login") : t("register")}
+          <h2 className="mb-1 text-xl font-bold tracking-wide text-white">
+            {t("changePasswordTitle")}
           </h2>
-          {mode === "register" ? (
-            <p className="mb-6 text-sm text-white/50">{t("authNoRecovery")}</p>
-          ) : (
-            <div className="mb-6" />
-          )}
+          <p className="mb-6 truncate text-sm text-white/50">{login}</p>
 
           <form onSubmit={handleSubmit} className="space-y-3">
             <div className="space-y-1">
               <label
-                htmlFor={loginId}
+                htmlFor={currentId}
                 className="text-xs font-bold uppercase tracking-widest text-white/70"
               >
-                {t("loginLabel")}
+                {t("currentPassword")}
               </label>
               <input
-                id={loginId}
-                type="text"
+                id={currentId}
+                type="password"
                 required
-                autoComplete="username"
-                spellCheck={false}
-                value={login}
-                onChange={(e) => setLogin(e.target.value)}
+                autoComplete="current-password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
                 className={fieldClass}
               />
             </div>
 
             <div className="space-y-1">
               <label
-                htmlFor={passwordId}
+                htmlFor={newId}
                 className="text-xs font-bold uppercase tracking-widest text-white/70"
               >
-                {t("password")}
+                {t("newPassword")}
               </label>
               <input
-                id={passwordId}
+                id={newId}
                 type="password"
                 required
-                autoComplete={
-                  mode === "login" ? "current-password" : "new-password"
-                }
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
                 className={fieldClass}
               />
             </div>
 
-            {mode === "register" ? (
-              <div className="space-y-1">
-                <label
-                  htmlFor={confirmId}
-                  className="text-xs font-bold uppercase tracking-widest text-white/70"
-                >
-                  {t("confirmPassword")}
-                </label>
-                <input
-                  id={confirmId}
-                  type="password"
-                  required
-                  autoComplete="new-password"
-                  value={confirm}
-                  onChange={(e) => setConfirm(e.target.value)}
-                  className={fieldClass}
-                />
-              </div>
-            ) : null}
+            <div className="space-y-1">
+              <label
+                htmlFor={confirmId}
+                className="text-xs font-bold uppercase tracking-widest text-white/70"
+              >
+                {t("confirmNewPassword")}
+              </label>
+              <input
+                id={confirmId}
+                type="password"
+                required
+                autoComplete="new-password"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                className={fieldClass}
+              />
+            </div>
 
             {error ? (
               <p className="text-sm font-medium text-red-300" role="alert">
                 {error}
+              </p>
+            ) : null}
+
+            {success ? (
+              <p className="text-sm font-medium text-emerald-300" role="status">
+                {t("changePasswordSuccess")}
               </p>
             ) : null}
 
@@ -182,28 +180,9 @@ export function AuthModal({ mode: initialMode, onClose, onSuccess }: Props) {
               disabled={pending}
               className="mt-2 w-full rounded-2xl bg-white py-3 font-bold text-black transition-all hover:bg-blue-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {pending
-                ? t("authPending")
-                : mode === "login"
-                  ? t("login")
-                  : t("register")}
+              {pending ? t("authPending") : t("changePasswordSubmit")}
             </button>
           </form>
-
-          <p className="mt-5 text-center text-sm text-white/55">
-            {mode === "login" ? t("noAccount") : t("haveAccount")}{" "}
-            <button
-              type="button"
-              disabled={pending}
-              onClick={() => {
-                setMode(mode === "login" ? "register" : "login");
-                setError(null);
-              }}
-              className="text-blue-400 underline underline-offset-2 transition-colors hover:text-blue-300"
-            >
-              {mode === "login" ? t("register") : t("login")}
-            </button>
-          </p>
         </motion.div>
       </motion.div>
     </AnimatePresence>

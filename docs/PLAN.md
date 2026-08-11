@@ -223,13 +223,13 @@ i18n: agent writes **en / ru / es / pt** for these short messages at implementat
 
 **You check**
 
-- [ ] Future / negative / invalid dates blocked
-- [ ] Delete asks for confirm
-- [ ] Mobile usable
-- [ ] No obvious console errors on happy path
+- [x] Future / negative / invalid dates blocked
+- [x] Delete asks for confirm
+- [x] Mobile usable
+- [x] No obvious console errors on happy path
 
 **Commit when:** polish OK.  
-**Status:** implemented — awaiting your verify + commit.
+**Status:** done (committed).
 
 ---
 
@@ -237,13 +237,13 @@ i18n: agent writes **en / ru / es / pt** for these short messages at implementat
 
 **Goal:** align shipped auth with product doctrine (no email / no reset).
 
-- [ ] Schema: `User.email` → `User.login` (unique); add `lastSeenAt`; wipe/migrate local DB (dev test account OK to drop)
-- [ ] Session `maxAge` ≈ **30 days**
-- [ ] Register / login forms use **login** field (any username string)
-- [ ] Touch `lastSeenAt` on register/login; throttle refresh **≤ once per day** when signed-in
-- [ ] Copy in all 4 locales (no “email” wording; no-recovery hint)
-- [ ] Change-password modal when clicking own login (current / new / confirm)
-- [ ] Script `users:prune-stale` (delete `lastSeenAt` older than 2 years) — wire into deploy later in J
+- [x] Schema: `User.email` → `User.login` (unique); add `lastSeenAt`; local test user wiped
+- [x] Session `maxAge` ≈ **30 days**
+- [x] Register / login forms use **login** field (any username string)
+- [x] Touch `lastSeenAt` on register/login; throttle refresh **≤ once per day** when signed-in
+- [x] Copy in all 4 locales (no “email” wording; no-recovery hint)
+- [x] Change-password modal when clicking own login (current / new / confirm)
+- [x] Script `users:prune-stale` (delete `lastSeenAt` older than 2 years) — wire into deploy in J
 
 **You check**
 
@@ -251,7 +251,8 @@ i18n: agent writes **en / ru / es / pt** for these short messages at implementat
 - [ ] Change password works; wrong current password fails
 - [ ] No SMTP / mail code anywhere
 
-**Commit when:** auth doctrine matches docs.
+**Commit when:** auth doctrine matches docs.  
+**Status:** implemented — awaiting verify + commit.
 
 ---
 
@@ -307,15 +308,9 @@ i18n: agent writes **en / ru / es / pt** for these short messages at implementat
 
 ## Current position
 
-**Done:** Stage A–F (interim: email auth + guest examples only, no local persist).  
-**In progress:** **Stage G** — implemented; verify then commit.
+**Done:** Stage A–G.  
+**In progress:** **Stage H** — implemented; verify then commit.
 
-**Next after G:**
+**Next after H:** **I** (guest localStorage + merge) → **J** (deploy).
 
-1. **H** — login (not email) + change password + lastSeenAt  
-2. **I** — guest localStorage + merge + UNIQUE date  
-3. **J** — server deploy + prune script on deploy  
-
-**Why this order:** G is independent validation; H changes the User schema (needed before I’s register/login merge); I builds on both. Order of G vs H could swap, but I should stay after H.
-
-Say when G is OK to commit / when to start H.
+Say when H is OK to commit / when to start I.

@@ -7,6 +7,7 @@ import { signOut, useSession } from "next-auth/react";
 import { useLocale, useTranslations } from "next-intl";
 import { AuthModal } from "@/components/AuthModal";
 import { CardForm, type CardFormValues } from "@/components/CardForm";
+import { ChangePasswordModal } from "@/components/ChangePasswordModal";
 import { CosmicClock } from "@/components/CosmicClock";
 import { Link, usePathname } from "@/i18n/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
@@ -17,6 +18,7 @@ import {
   updateCardAction,
   type CardActionResult,
 } from "@/lib/card-actions";
+import { touchLastSeenAction } from "@/lib/auth-actions";
 import {
   EXAMPLE_CARD_DATES,
   type CardData,
@@ -53,9 +55,10 @@ export function CosmicApp() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const userEmail = session?.user?.email ?? null;
+  const userLogin = session?.user?.login ?? null;
   const isLoggedIn = Boolean(session?.user?.id);
   const sessionReady = status !== "loading";
 
@@ -120,6 +123,8 @@ export function CosmicApp() {
 
         const result = await listMyCardsAction();
         if (cancelled) return;
+
+        void touchLastSeenAction();
 
         if (!result.ok) {
           setActionError(cardErrorMessage(result));
@@ -294,18 +299,23 @@ export function CosmicApp() {
         </motion.div>
 
         <div className="flex items-center gap-2">
-          {userEmail ? (
+          {userLogin ? (
             <div className="flex items-center overflow-hidden rounded-xl border border-white/25">
-              <span className="hidden max-w-[130px] truncate border-r border-white/25 px-4 py-2 text-sm font-bold text-white/70 sm:block">
-                {userEmail}
-              </span>
+              <button
+                type="button"
+                onClick={() => setChangePasswordOpen(true)}
+                title={t("changePasswordTitle")}
+                className="max-w-[7rem] truncate border-r border-white/25 px-3 py-2 text-sm font-bold text-white/70 transition-all hover:bg-white/10 hover:text-white sm:max-w-[130px] sm:px-4"
+              >
+                {userLogin}
+              </button>
               <button
                 type="button"
                 onClick={onLogout}
                 disabled={logoutPending || status === "loading"}
                 className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-blue-300 transition-all hover:bg-blue-500/30 hover:text-white disabled:opacity-60"
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut className="h-4 w-4" aria-hidden />
                 {t("logout")}
               </button>
             </div>
@@ -472,6 +482,15 @@ export function CosmicApp() {
             mode={authModal}
             onClose={() => setAuthModal(null)}
             onSuccess={onAuthSuccess}
+          />
+        ) : null}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {changePasswordOpen && userLogin ? (
+          <ChangePasswordModal
+            login={userLogin}
+            onClose={() => setChangePasswordOpen(false)}
           />
         ) : null}
       </AnimatePresence>

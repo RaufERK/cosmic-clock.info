@@ -49,11 +49,11 @@
 | Locale routing + header switcher | Done |
 | CosmicClock + cards UI | Done |
 | Prisma `User` / `Card` + local migrate | Done |
-| Auth.js register / login / logout | Done (**still email** until Stage H) |
+| Auth.js register / login / logout | Done (**login** + password; Stage H) |
 | Card CRUD in Postgres (signed-in) | Done |
 | Guest localStorage + migrate/merge | Planned Stage I |
-| Login (not email) + change password | Planned Stage H |
-| Start-date doctrine (`year >= 0`, ≤ today) | Planned Stage G |
+| Login (not email) + change password | Done (Stage H) |
+| Start-date doctrine (`year >= 0`, ≤ today) | Done (Stage G) |
 | Server deploy | Planned Stage J |
 
 Living detail: [`docs/PLAN.md`](PLAN.md).
@@ -62,7 +62,7 @@ Living detail: [`docs/PLAN.md`](PLAN.md).
 
 See `prisma/schema.prisma` (current) and Stages H/I migrations:
 
-- **User** — today: `email` unique; **target:** `login` unique + `passwordHash` + `createdAt` + `lastSeenAt`
+- **User** — `login` unique + `passwordHash` + `createdAt` + `lastSeenAt` + `updatedAt`
 - **Card** — `id`, `userId`, `name`, `day`, `month`, `year`, `createdAt`, `updatedAt`; cascade delete with user
 - **Unique:** `(userId, year, month, day)` — one start date per user
 - Max **100 cards / user** — after date-dedupe; truncate by newest `updatedAt`

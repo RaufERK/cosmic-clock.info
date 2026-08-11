@@ -1,4 +1,4 @@
-// Cosmic Clock — Prisma schema (Stage D)
+// Cosmic Clock — Prisma schema
 // https://pris.ly/d/prisma-schema
 
 generator client {
@@ -12,15 +12,18 @@ datasource db {
 
 model User {
   id           String   @id @default(cuid())
-  email        String   @unique
+  login        String   @unique
   passwordHash String
+  /// Last authenticated activity (register/login or throttled visit).
+  lastSeenAt   DateTime @default(now())
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   cards        Card[]
 }
 
 /// Life-event card with date → cosmic clock hands.
-/// Max 100 cards per user is enforced in application code (Stage F).
+/// Max 100 cards per user is enforced in application code.
+/// Unique start date per user is Stage I.
 model Card {
   id        String   @id @default(cuid())
   userId    String

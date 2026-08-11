@@ -1,17 +1,28 @@
 "use server";
 
 import { AuthError } from "next-auth";
-import { signIn } from "@/auth";
+import { auth, signIn } from "@/auth";
 import { prisma } from "@/lib/db";
-import { hashPassword } from "@/lib/password";
+import { hashPassword, verifyPassword } from "@/lib/password";
+import {
+  isValidLoginFormat,
+  normalizeLogin,
+  touchLastSeen,
+} from "@/lib/user-activity";
 
 export type AuthActionResult =
   | { ok: true }
-  | { ok: false; error: "invalid" | "mismatch" | "taken" | "weak" | "unknown" };
-
-function normalizeEmail(email: string): string {
-  return email.trim().toLowerCase();
-}
+  | {
+      ok: false;
+      error:
+        | "invalid"
+        | "mismatch"
+        | "taken"
+        | "weak"
+        | "wrong_password"
+        | "unauthorized"
+        | "unknown";
+    };
 
 function isNextRedirect(error: unknown): boolean {
   return (
@@ -24,12 +35,12 @@ function isNextRedirect(error: unknown): boolean {
 }
 
 async function signInCredentials(
-  email: string,
+  login: string,
   password: string,
 ): Promise<AuthActionResult> {
   try {
     await signIn("credentials", {
-      email,
+      login,
       password,
       redirect: false,
     });
@@ -46,13 +57,13 @@ async function signInCredentials(
 }
 
 export async function registerAction(
-  emailRaw: string,
+  loginRaw: string,
   password: string,
   confirmPassword: string,
 ): Promise<AuthActionResult> {
-  const email = normalizeEmail(emailRaw);
+  const login = normalizeLogin(loginRaw);
 
-  if (!email || !password) {
+  if (!isValidLoginFormat(login) || !password) {
     return { ok: false, error: "invalid" };
   }
   if (password.length < 6) {
@@ -62,27 +73,80 @@ export async function registerAction(
     return { ok: false, error: "mismatch" };
   }
 
-  const existing = await prisma.user.findUnique({ where: { email } });
+  const existing = await prisma.user.findUnique({ where: { login } });
   if (existing) {
     return { ok: false, error: "taken" };
   }
 
   const passwordHash = await hashPassword(password);
+  const now = new Date();
   await prisma.user.create({
-    data: { email, passwordHash },
+    data: { login, passwordHash, lastSeenAt: now },
   });
 
-  return signInCredentials(email, password);
+  return signInCredentials(login, password);
 }
 
 export async function loginAction(
-  emailRaw: string,
+  loginRaw: string,
   password: string,
 ): Promise<AuthActionResult> {
-  const email = normalizeEmail(emailRaw);
-  if (!email || !password) {
+  const login = normalizeLogin(loginRaw);
+  if (!isValidLoginFormat(login) || !password) {
     return { ok: false, error: "invalid" };
   }
 
-  return signInCredentials(email, password);
+  return signInCredentials(login, password);
+}
+
+export async function changePasswordAction(
+  currentPassword: string,
+  newPassword: string,
+  confirmPassword: string,
+): Promise<AuthActionResult> {
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) {
+    return { ok: false, error: "unauthorized" };
+  }
+
+  if (!currentPassword || !newPassword) {
+    return { ok: false, error: "invalid" };
+  }
+  if (newPassword.length < 6) {
+    return { ok: false, error: "weak" };
+  }
+  if (newPassword !== confirmPassword) {
+    return { ok: false, error: "mismatch" };
+  }
+
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    return { ok: false, error: "unauthorized" };
+  }
+
+  const valid = await verifyPassword(currentPassword, user.passwordHash);
+  if (!valid) {
+    return { ok: false, error: "wrong_password" };
+  }
+
+  const passwordHash = await hashPassword(newPassword);
+  await prisma.user.update({
+    where: { id: userId },
+    data: { passwordHash },
+  });
+
+  return { ok: true };
+}
+
+/** Throttled lastSeenAt bump for signed-in visits (safe to call often). */
+export async function touchLastSeenAction(): Promise<void> {
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return;
+  try {
+    await touchLastSeen(userId);
+  } catch {
+    // Non-critical; ignore
+  }
 }

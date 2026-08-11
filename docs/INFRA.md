@@ -79,6 +79,6 @@ Data persists in the named Docker volume `cosmic_clock_pgdata`.
 | Local Mac | Docker Compose Postgres on **5433** |
 | Server | System Postgres 14 on **127.0.0.1:5432** + dedicated role/DB when ready |
 | Schema | Prisma — same migrations locally and on server |
-| Auth | Auth.js Credentials + JWT; set `AUTH_SECRET` locally and on server |
+| Auth | Auth.js Credentials (**login** + password) + JWT (~30d); set `AUTH_SECRET`; `npm run users:prune-stale` |
 
 No rush to create the server DB until Phase 2 (real auth + persistence). Until then, optional: run local Postgres early so Prisma schema/migrations can be developed without blocking UI work.
