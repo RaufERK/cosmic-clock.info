@@ -323,30 +323,77 @@ export function CosmicApp() {
         <div className="absolute right-[-10%] bottom-[-10%] h-[60%] w-[60%] rounded-full bg-purple-600/10 blur-[150px]" />
       </div>
 
-      <nav className="relative z-10 mx-auto flex w-full flex-col items-center justify-between gap-4 px-6 pt-8 pb-16 sm:px-8 md:flex-row lg:px-10">
-        <div className="flex items-center overflow-hidden rounded-xl border border-white/25">
-          {locales.map((code, idx) => (
-            <Link
-              key={code}
-              href={pathname}
-              locale={code}
-              className={`px-3 py-1.5 text-xs font-bold tracking-widest transition-all ${
-                idx > 0 ? "border-l border-white/25" : ""
-              } ${
-                locale === code
-                  ? "bg-blue-500/25 text-blue-300"
-                  : "text-white/70 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              {LOCALE_LABEL[code]}
-            </Link>
-          ))}
+      <nav className="relative z-10 mx-auto flex w-full flex-col items-center pb-16 md:flex-row md:justify-between md:gap-4 md:px-8 md:pt-8 lg:px-10">
+        <div className="flex w-full items-stretch overflow-hidden border-b border-white/25 md:contents">
+          <div className="flex min-w-0 flex-1 items-center md:order-1 md:flex-none md:overflow-hidden md:rounded-xl md:border md:border-white/25">
+            {locales.map((code, idx) => (
+              <Link
+                key={code}
+                href={pathname}
+                locale={code}
+                className={`px-2 py-1.5 text-xs font-bold tracking-wider transition-all md:px-3 md:py-1.5 md:text-xs md:tracking-widest ${
+                  idx > 0 ? "border-l border-white/25" : ""
+                } ${
+                  idx === locales.length - 1
+                    ? "border-r border-white/25 md:border-r-0"
+                    : ""
+                } ${
+                  locale === code
+                    ? "bg-blue-500/25 text-blue-300"
+                    : "text-white/70 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                {LOCALE_LABEL[code]}
+              </Link>
+            ))}
+          </div>
+
+          <div className="flex shrink-0 items-center border-l border-white/25 md:order-3 md:overflow-hidden md:rounded-xl md:border md:border-white/25">
+            {userLogin ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setChangePasswordOpen(true)}
+                  title={t("changePasswordTitle")}
+                  className="max-w-[4.5rem] truncate border-r border-white/25 px-2 py-1.5 text-xs font-bold text-white/70 transition-all hover:bg-white/10 hover:text-white sm:max-w-[7rem] md:max-w-[130px] md:px-4 md:py-2 md:text-sm"
+                >
+                  {userLogin}
+                </button>
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  disabled={logoutPending || status === "loading"}
+                  className="flex items-center gap-1 px-2 py-1.5 text-xs font-bold text-blue-300 transition-all hover:bg-blue-500/30 hover:text-white disabled:opacity-60 md:gap-1.5 md:px-4 md:py-2 md:text-sm"
+                >
+                  <LogOut className="h-3 w-3 md:h-4 md:w-4" aria-hidden />
+                  {t("logout")}
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setAuthModal("login")}
+                  className="border-r border-white/25 px-2 py-1.5 text-xs font-bold text-white/70 transition-all hover:bg-white/10 hover:text-white md:px-4 md:py-2 md:text-sm"
+                >
+                  {t("login")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAuthModal("register")}
+                  className="px-2 py-1.5 text-xs font-bold text-blue-300 transition-all hover:bg-blue-500/30 hover:text-white md:px-4 md:py-2 md:text-sm"
+                >
+                  {t("register")}
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
         <motion.div
           initial="initial"
           whileHover="hover"
-          className="group relative flex-1 cursor-default text-center"
+          className="group relative order-2 mt-6 w-full flex-1 cursor-default px-6 text-center sm:px-8 md:mt-0 md:px-0"
         >
           <motion.svg
             variants={{
@@ -380,47 +427,6 @@ export function CosmicApp() {
             </text>
           </motion.svg>
         </motion.div>
-
-        <div className="flex items-center gap-2">
-          {userLogin ? (
-            <div className="flex items-center overflow-hidden rounded-xl border border-white/25">
-              <button
-                type="button"
-                onClick={() => setChangePasswordOpen(true)}
-                title={t("changePasswordTitle")}
-                className="max-w-[7rem] truncate border-r border-white/25 px-3 py-2 text-sm font-bold text-white/70 transition-all hover:bg-white/10 hover:text-white sm:max-w-[130px] sm:px-4"
-              >
-                {userLogin}
-              </button>
-              <button
-                type="button"
-                onClick={onLogout}
-                disabled={logoutPending || status === "loading"}
-                className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-blue-300 transition-all hover:bg-blue-500/30 hover:text-white disabled:opacity-60"
-              >
-                <LogOut className="h-4 w-4" aria-hidden />
-                {t("logout")}
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center overflow-hidden rounded-xl border border-white/25">
-              <button
-                type="button"
-                onClick={() => setAuthModal("login")}
-                className="border-r border-white/25 px-4 py-2 text-sm font-bold text-white/70 transition-all hover:bg-white/10 hover:text-white"
-              >
-                {t("login")}
-              </button>
-              <button
-                type="button"
-                onClick={() => setAuthModal("register")}
-                className="px-4 py-2 text-sm font-bold text-blue-300 transition-all hover:bg-blue-500/30 hover:text-white"
-              >
-                {t("register")}
-              </button>
-            </div>
-          )}
-        </div>
       </nav>
 
       <main className="relative z-10 mx-auto w-full px-6 pb-32 sm:px-8 lg:px-10">
