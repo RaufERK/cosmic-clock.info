@@ -282,10 +282,10 @@ i18n: agent writes **en / ru / es / pt** for these short messages at implementat
 
 ## Stage J — Server DB + optional deploy (only when you want)
 
-- [ ] On `amster`: create role + DB `cosmic_clock`
-- [ ] Put `DATABASE_URL` + `AUTH_SECRET` in `shared/.env`
-- [ ] Run migrations on server
-- [ ] Deploy via PM2 when you ask; run **`users:prune-stale`** as a deploy step
+- [x] On `amster`: create role + DB `cosmic_clock`
+- [x] Put `DATABASE_URL` + `AUTH_SECRET` in `shared/.env`
+- [x] Run migrations on server
+- [x] Deploy via PM2 when you ask; run **`users:prune-stale`** as a deploy step
 - [ ] Smoke-test https://cosmic-clock.info
 
 **You check**
@@ -293,23 +293,14 @@ i18n: agent writes **en / ru / es / pt** for these short messages at implementat
 - [ ] Login + one card on production
 - [ ] Logs clean enough
 
-**Commit when:** deploy config / docs updated (if needed).
-
----
-
-## Later (not now — do not pull into current stages)
-
-- Card types/tags (birth, marriage, job, project)
-- Time / place / timezone
-- Real ephemeris / natal engine
-- OAuth, billing, public share links
-- Email / SMTP / password-reset by mail (explicitly deferred — not planned for v1)
+**Commit when:** deploy config / docs updated (if needed).  
+**Status:** deployed (migrations applied; smoke-test yours).
 
 ---
 
 ## Current position
 
-**Done:** Stage A–I.  
-**Next:** **J** — server DB + deploy + prune (when you want).
+**Done:** Stage A–J (deploy live).  
+**You:** smoke-test https://cosmic-clock.info (login + card + legend hour names).
 
-Smoke-test locally: guest Summit card, duplicate date blocked, register/login merge, change password.
+Later items remain out of scope until requested.
