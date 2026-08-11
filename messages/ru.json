@@ -30,7 +30,6 @@
     "changePasswordTitle": "Смена пароля",
     "changePasswordSubmit": "Сохранить пароль",
     "changePasswordSuccess": "Пароль обновлён.",
-    "authNoRecovery": "Восстановления пароля нет. Если забудете — создайте новый аккаунт.",
     "haveAccount": "Уже есть аккаунт?",
     "noAccount": "Нет аккаунта?",
     "months": [
@@ -71,7 +70,15 @@
     "formNext": "Далее",
     "formBack": "Назад",
     "formDetailsHint": "Когда заполнены название, год и месяц — откроется календарь дня.",
-    "weekdayShort": ["пн", "вт", "ср", "чт", "пт", "сб", "вс"],
+    "weekdayShort": [
+      "пн",
+      "вт",
+      "ср",
+      "чт",
+      "пт",
+      "сб",
+      "вс"
+    ],
     "legendYear": "год",
     "legendMonth": "месяц",
     "legendHour": "час",

@@ -30,7 +30,6 @@
     "changePasswordTitle": "Alterar senha",
     "changePasswordSubmit": "Guardar senha",
     "changePasswordSuccess": "Senha atualizada.",
-    "authNoRecovery": "Não há recuperação de senha. Se esquecer, crie uma conta nova.",
     "haveAccount": "Já tem uma conta?",
     "noAccount": "Não tem uma conta?",
     "months": [
@@ -71,7 +70,15 @@
     "formNext": "Seguinte",
     "formBack": "Voltar",
     "formDetailsHint": "Com nome, ano e mês preenchidos, abre-se o calendário do dia.",
-    "weekdayShort": ["seg", "ter", "qua", "qui", "sex", "sáb", "dom"],
+    "weekdayShort": [
+      "seg",
+      "ter",
+      "qua",
+      "qui",
+      "sex",
+      "sáb",
+      "dom"
+    ],
     "legendYear": "Ano",
     "legendMonth": "Mês",
     "legendHour": "h.",

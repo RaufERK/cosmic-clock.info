@@ -30,7 +30,6 @@
     "changePasswordTitle": "Cambiar contraseña",
     "changePasswordSubmit": "Guardar contraseña",
     "changePasswordSuccess": "Contraseña actualizada.",
-    "authNoRecovery": "No hay recuperación de contraseña. Si la olvidas, crea una cuenta nueva.",
     "haveAccount": "¿Ya tienes cuenta?",
     "noAccount": "¿No tienes cuenta?",
     "months": [
@@ -71,7 +70,15 @@
     "formNext": "Siguiente",
     "formBack": "Atrás",
     "formDetailsHint": "Con nombre, año y mes listos, se abre el calendario del día.",
-    "weekdayShort": ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"],
+    "weekdayShort": [
+      "lun",
+      "mar",
+      "mié",
+      "jue",
+      "vie",
+      "sáb",
+      "dom"
+    ],
     "legendYear": "Año",
     "legendMonth": "Mes",
     "legendHour": "h.",

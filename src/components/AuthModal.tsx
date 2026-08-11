@@ -102,14 +102,9 @@ export function AuthModal({ mode: initialMode, onClose, onSuccess }: Props) {
             <X className="h-4 w-4 text-white/50" aria-hidden />
           </button>
 
-          <h2 className="mb-2 text-xl font-bold tracking-wide text-white">
+          <h2 className="mb-6 text-xl font-bold tracking-wide text-white">
             {mode === "login" ? t("login") : t("register")}
           </h2>
-          {mode === "register" ? (
-            <p className="mb-6 text-sm text-white/50">{t("authNoRecovery")}</p>
-          ) : (
-            <div className="mb-6" />
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-3">
             <div className="space-y-1">

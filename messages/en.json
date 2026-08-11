@@ -30,7 +30,6 @@
     "changePasswordTitle": "Change password",
     "changePasswordSubmit": "Save password",
     "changePasswordSuccess": "Password updated.",
-    "authNoRecovery": "There is no password recovery. If you forget it, create a new account.",
     "haveAccount": "Already have an account?",
     "noAccount": "Don't have an account?",
     "months": [
@@ -71,7 +70,15 @@
     "formNext": "Next",
     "formBack": "Back",
     "formDetailsHint": "When name, year and month are filled, the day calendar opens.",
-    "weekdayShort": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    "weekdayShort": [
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat",
+      "Sun"
+    ],
     "legendYear": "Year",
     "legendMonth": "Month",
     "legendHour": "h.",
