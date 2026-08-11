@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { LogOut, Plus, Settings } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
@@ -9,6 +9,7 @@ import { AuthModal } from "@/components/AuthModal";
 import { CardForm, type CardFormValues } from "@/components/CardForm";
 import { ChangePasswordModal } from "@/components/ChangePasswordModal";
 import { CosmicClock } from "@/components/CosmicClock";
+import { Toast, type ToastMessage, type ToastVariant } from "@/components/Toast";
 import { Link, usePathname } from "@/i18n/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
 import {
@@ -62,12 +63,19 @@ export function CosmicApp() {
   const [isAdding, setIsAdding] = useState(false);
   const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
-  const [actionError, setActionError] = useState<string | null>(null);
-  const [actionInfo, setActionInfo] = useState<string | null>(null);
+  const [toast, setToast] = useState<ToastMessage | null>(null);
 
   const userLogin = session?.user?.login ?? null;
   const isLoggedIn = Boolean(session?.user?.id && session?.user?.login);
   const sessionReady = status !== "loading";
+
+  const dismissToast = useCallback(() => {
+    setToast(null);
+  }, []);
+
+  function showToast(text: string, variant: ToastVariant) {
+    setToast({ id: Date.now(), text, variant });
+  }
 
   function cardErrorMessage(result: CardActionResult): string {
     if (result.ok) return "";
@@ -112,7 +120,6 @@ export function CosmicApp() {
 
     queueMicrotask(() => {
       void (async () => {
-        setActionError(null);
         setEditingId(null);
         setIsAdding(false);
         setReady(false);
@@ -141,7 +148,7 @@ export function CosmicApp() {
           if (cancelled) return;
 
           if (!mergeResult.ok) {
-            setActionError(t("mergeError"));
+            showToast(t("mergeError"), "error");
             setCards([]);
             setReady(true);
             return;
@@ -149,7 +156,7 @@ export function CosmicApp() {
 
           clearGuestCards();
           setCards(mergeResult.cards);
-          setActionInfo(mergeInfoMessage(mergeResult));
+          showToast(mergeInfoMessage(mergeResult), "success");
           setReady(true);
           return;
         }
@@ -158,7 +165,7 @@ export function CosmicApp() {
         if (cancelled) return;
 
         if (!result.ok) {
-          setActionError(cardErrorMessage(result));
+          showToast(cardErrorMessage(result), "error");
           setCards([]);
           setReady(true);
           return;
@@ -176,9 +183,6 @@ export function CosmicApp() {
   }, [sessionReady, session?.user?.id, locale]);
 
   function addCard(data: CardFormValues) {
-    setActionError(null);
-    setActionInfo(null);
-
     if (!isLoggedIn) {
       const next = addGuestCard(
         cards.map((c) => ({
@@ -188,11 +192,11 @@ export function CosmicApp() {
         data,
       );
       if (next === "duplicate") {
-        setActionError(t("cardErrorDuplicateDate"));
+        showToast(t("cardErrorDuplicateDate"), "error");
         return;
       }
       if (next === "invalid") {
-        setActionError(t("cardErrorInvalid"));
+        showToast(t("cardErrorInvalid"), "error");
         return;
       }
       setCards(next);
@@ -203,7 +207,7 @@ export function CosmicApp() {
     startCardsTransition(async () => {
       const result = await createCardAction(data);
       if (!result.ok) {
-        setActionError(cardErrorMessage(result));
+        showToast(cardErrorMessage(result), "error");
         return;
       }
       if (result.card) {
@@ -214,9 +218,6 @@ export function CosmicApp() {
   }
 
   function updateCard(id: string, data: CardFormValues) {
-    setActionError(null);
-    setActionInfo(null);
-
     if (!isLoggedIn) {
       const next = updateGuestCard(
         cards.map((c) => ({
@@ -227,15 +228,15 @@ export function CosmicApp() {
         data,
       );
       if (next === "duplicate") {
-        setActionError(t("cardErrorDuplicateDate"));
+        showToast(t("cardErrorDuplicateDate"), "error");
         return;
       }
       if (next === "invalid") {
-        setActionError(t("cardErrorInvalid"));
+        showToast(t("cardErrorInvalid"), "error");
         return;
       }
       if (next === "not_found") {
-        setActionError(t("cardErrorNotFound"));
+        showToast(t("cardErrorNotFound"), "error");
         return;
       }
       setCards(next);
@@ -246,7 +247,7 @@ export function CosmicApp() {
     startCardsTransition(async () => {
       const result = await updateCardAction(id, data);
       if (!result.ok) {
-        setActionError(cardErrorMessage(result));
+        showToast(cardErrorMessage(result), "error");
         return;
       }
       if (result.card) {
@@ -259,9 +260,6 @@ export function CosmicApp() {
   }
 
   function removeCard(id: string) {
-    setActionError(null);
-    setActionInfo(null);
-
     if (!isLoggedIn) {
       setCards(
         removeGuestCard(
@@ -279,7 +277,7 @@ export function CosmicApp() {
     startCardsTransition(async () => {
       const result = await deleteCardAction(id);
       if (!result.ok) {
-        setActionError(cardErrorMessage(result));
+        showToast(cardErrorMessage(result), "error");
         return;
       }
       setCards((prev) => prev.filter((card) => card.id !== id));
@@ -297,13 +295,11 @@ export function CosmicApp() {
 
   async function onAuthSuccess() {
     setAuthModal(null);
-    setActionError(null);
     await update();
   }
 
   function onLogout() {
     startLogout(async () => {
-      setActionInfo(null);
       await signOut({ redirect: false });
     });
   }
@@ -430,18 +426,6 @@ export function CosmicApp() {
           </p>
         ) : null}
 
-        {actionError ? (
-          <p className="mb-6 text-center text-sm text-red-300" role="alert">
-            {actionError}
-          </p>
-        ) : null}
-
-        {actionInfo ? (
-          <p className="mb-6 text-center text-sm text-emerald-300/90" role="status">
-            {actionInfo}
-          </p>
-        ) : null}
-
         {!ready ? (
           <div className="py-24 text-center text-white/30">{t("loading")}</div>
         ) : (
@@ -542,12 +526,12 @@ export function CosmicApp() {
                   <button
                     type="button"
                     onClick={onAddClick}
-                    className="group flex h-full w-full flex-col items-center justify-center gap-6 rounded-[2.5rem] border border-dashed border-white/10 text-white/20 transition-all hover:border-blue-500/30 hover:bg-white/[0.02]"
+                    className="group flex h-full w-full flex-col items-center justify-center gap-6 rounded-[2.5rem] border border-dashed border-indigo-300/35 bg-indigo-950/45 text-white/65 shadow-lg shadow-indigo-950/30 backdrop-blur-md transition-all hover:border-blue-400/50 hover:bg-indigo-900/55 hover:text-white/90"
                   >
-                    <div className="rounded-full bg-white/5 p-8 transition-all group-hover:scale-105 group-hover:bg-blue-500/10">
-                      <Plus className="h-10 w-10" />
+                    <div className="rounded-full border border-white/15 bg-white/12 p-8 text-blue-200/90 transition-all group-hover:scale-105 group-hover:border-blue-400/35 group-hover:bg-blue-500/20 group-hover:text-blue-100">
+                      <Plus className="h-10 w-10" strokeWidth={2.5} />
                     </div>
-                    <span className="text-xs font-bold tracking-[0.3em] uppercase">
+                    <span className="text-sm font-black tracking-[0.28em] text-white/75 uppercase drop-shadow-sm group-hover:text-white/95">
                       {t("addCard")}
                     </span>
                   </button>
@@ -583,6 +567,8 @@ export function CosmicApp() {
           />
         ) : null}
       </AnimatePresence>
+
+      <Toast toast={toast} onDismiss={dismissToast} />
     </div>
   );
 }
