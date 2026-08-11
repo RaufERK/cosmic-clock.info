@@ -69,6 +69,8 @@
     "dateErrorFuture": "The start date cannot be in the future.",
     "formNext": "Next",
     "formBack": "Back",
+    "sortNewestFirst": "Newest first",
+    "sortOldestFirst": "Oldest first",
     "formDetailsHint": "When name, year and month are filled, the day calendar opens.",
     "weekdayShort": [
       "Mon",

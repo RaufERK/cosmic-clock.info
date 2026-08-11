@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ChevronDown, LogOut, Plus, Settings } from "lucide-react";
+import { ArrowDown, ChevronDown, LogOut, Plus, Settings } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useLocale, useTranslations } from "next-intl";
 import { AuthModal } from "@/components/AuthModal";
@@ -22,7 +22,12 @@ import {
   type MergeCardsResult,
 } from "@/lib/card-actions";
 import { touchLastSeenAction } from "@/lib/auth-actions";
-import { type CardData, isGuestExampleSeedDate, sortCardsByStartDate } from "@/lib/cards";
+import {
+  type CardData,
+  type CardSortOrder,
+  isGuestExampleSeedDate,
+  sortCardsByCreatedAt,
+} from "@/lib/cards";
 import {
   addGuestCard,
   clearGuestCards,
@@ -30,6 +35,7 @@ import {
   readGuestCards,
   removeGuestCard,
   updateGuestCard,
+  type LocalCard,
 } from "@/lib/guest-cards";
 import {
   civilDate,
@@ -63,6 +69,7 @@ export function CosmicApp() {
   const [ready, setReady] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [sortOrder, setSortOrder] = useState<CardSortOrder>("newest");
   const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [toast, setToast] = useState<ToastMessage | null>(null);
@@ -72,6 +79,15 @@ export function CosmicApp() {
   const userLogin = session?.user?.login ?? null;
   const isLoggedIn = Boolean(session?.user?.id && session?.user?.login);
   const sessionReady = status !== "loading";
+
+  function toLocalCards(list: CardData[]): LocalCard[] {
+    const stamped = new Date().toISOString();
+    return list.map((c) => ({
+      ...c,
+      createdAt: c.createdAt ?? c.updatedAt ?? stamped,
+      updatedAt: c.updatedAt ?? c.createdAt ?? stamped,
+    }));
+  }
 
   const dismissToast = useCallback(() => {
     setToast(null);
@@ -211,13 +227,7 @@ export function CosmicApp() {
 
   function addCard(data: CardFormValues) {
     if (!isLoggedIn) {
-      const next = addGuestCard(
-        cards.map((c) => ({
-          ...c,
-          updatedAt: c.updatedAt ?? new Date().toISOString(),
-        })),
-        data,
-      );
+      const next = addGuestCard(toLocalCards(cards), data);
       if (next === "duplicate") {
         showToast(t("cardErrorDuplicateDate"), "error");
         return;
@@ -238,7 +248,7 @@ export function CosmicApp() {
         return;
       }
       if (result.card) {
-        setCards((prev) => sortCardsByStartDate([...prev, result.card!]));
+        setCards((prev) => [...prev, result.card!]);
       }
       setIsAdding(false);
     });
@@ -246,14 +256,7 @@ export function CosmicApp() {
 
   function updateCard(id: string, data: CardFormValues) {
     if (!isLoggedIn) {
-      const next = updateGuestCard(
-        cards.map((c) => ({
-          ...c,
-          updatedAt: c.updatedAt ?? new Date().toISOString(),
-        })),
-        id,
-        data,
-      );
+      const next = updateGuestCard(toLocalCards(cards), id, data);
       if (next === "duplicate") {
         showToast(t("cardErrorDuplicateDate"), "error");
         return;
@@ -279,9 +282,14 @@ export function CosmicApp() {
       }
       if (result.card) {
         setCards((prev) =>
-          sortCardsByStartDate(
-            prev.map((card) => (card.id === id ? result.card! : card)),
-          ),
+          prev.map((card) => {
+            if (card.id !== id) return card;
+            // Keep local createdAt if server omits it — edits must not reshuffle.
+            return {
+              ...result.card!,
+              createdAt: result.card!.createdAt ?? card.createdAt,
+            };
+          }),
         );
       }
       setEditingId(null);
@@ -290,15 +298,7 @@ export function CosmicApp() {
 
   function removeCard(id: string) {
     if (!isLoggedIn) {
-      setCards(
-        removeGuestCard(
-          cards.map((c) => ({
-            ...c,
-            updatedAt: c.updatedAt ?? new Date().toISOString(),
-          })),
-          id,
-        ),
-      );
+      setCards(removeGuestCard(toLocalCards(cards), id));
       setEditingId(null);
       return;
     }
@@ -586,6 +586,41 @@ export function CosmicApp() {
         </div>
       </nav>
 
+      <div className="relative z-10 mx-auto mb-10 w-full max-w-7xl px-6 sm:px-8 lg:px-10">
+        <div className="flex items-center gap-4">
+          <div className="h-px flex-1 bg-white/10" />
+          {ready && cards.length > 1 ? (
+            <button
+              type="button"
+              onClick={() =>
+                setSortOrder((o) => (o === "newest" ? "oldest" : "newest"))
+              }
+              title={
+                sortOrder === "newest"
+                  ? t("sortNewestFirst")
+                  : t("sortOldestFirst")
+              }
+              aria-label={
+                sortOrder === "newest"
+                  ? t("sortNewestFirst")
+                  : t("sortOldestFirst")
+              }
+              className="flex-shrink-0 rounded-xl border border-white/20 bg-white/5 p-2.5 text-white/40 transition-all hover:border-blue-400/40 hover:bg-blue-500/10 hover:text-blue-300"
+            >
+              <ArrowDown
+                className="h-4 w-4 transition-transform duration-300"
+                style={{
+                  transform:
+                    sortOrder === "newest" ? "rotate(0deg)" : "rotate(180deg)",
+                }}
+                aria-hidden
+              />
+            </button>
+          ) : null}
+          <div className="h-px flex-1 bg-white/10" />
+        </div>
+      </div>
+
       <main className="relative z-10 mx-auto w-full px-6 pb-32 sm:px-8 lg:px-10">
         {!ready ? (
           <div className="py-24 text-center text-white/30">{t("loading")}</div>
@@ -596,7 +631,7 @@ export function CosmicApp() {
             }`}
           >
             <AnimatePresence mode="popLayout">
-              {cards.map((card) => {
+              {sortCardsByCreatedAt(cards, sortOrder).map((card) => {
                 const hands = computeHandRotations(
                   civilDate(card.year, card.month, card.day),
                 );
@@ -687,12 +722,12 @@ export function CosmicApp() {
                   <button
                     type="button"
                     onClick={onAddClick}
-                    className="group flex h-full w-full flex-col items-center justify-center gap-6 rounded-[2.5rem] border border-dashed border-indigo-300/35 bg-indigo-950/45 text-white/65 shadow-lg shadow-indigo-950/30 backdrop-blur-md transition-all hover:border-blue-400/50 hover:bg-indigo-900/55 hover:text-white/90"
+                    className="group flex h-full w-full flex-col items-center justify-center gap-6 rounded-[2.5rem] border border-dashed border-indigo-400/30 bg-indigo-950/40 text-indigo-300/60 backdrop-blur-sm transition-all duration-500 hover:border-indigo-400/60 hover:bg-indigo-900/50 hover:text-indigo-200"
                   >
-                    <div className="rounded-full border border-white/15 bg-white/12 p-8 text-blue-200/90 transition-all group-hover:scale-105 group-hover:border-blue-400/35 group-hover:bg-blue-500/20 group-hover:text-blue-100">
-                      <Plus className="h-10 w-10" strokeWidth={2.5} />
+                    <div className="rounded-full border border-indigo-400/25 bg-indigo-500/10 p-7 transition-all duration-500 group-hover:scale-110 group-hover:border-indigo-400/50 group-hover:bg-indigo-500/20">
+                      <Plus className="h-10 w-10" />
                     </div>
-                    <span className="text-sm font-black tracking-[0.28em] text-white/75 uppercase drop-shadow-sm group-hover:text-white/95">
+                    <span className="text-base font-bold tracking-[0.25em] text-indigo-300/80 uppercase transition-colors group-hover:text-indigo-100">
                       {t("addCard")}
                     </span>
                   </button>

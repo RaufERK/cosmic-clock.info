@@ -1,8 +1,16 @@
 "use client";
 
-import { FormEvent, useId, useMemo, useState } from "react";
+import {
+  FormEvent,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ChangeEvent,
+} from "react";
 import { motion } from "motion/react";
-import { ChevronLeft, Trash2, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Trash2, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { daysInMonth, todayCivil } from "@/lib/cosmic-clock-math";
 import {
@@ -26,11 +34,75 @@ type Props = {
   isNew?: boolean;
 };
 
-type Step = "details" | "day";
+type Step = 1 | 2;
 
 function firstWeekdayMondayFirst(year: number, month: number): number {
   const sundayFirst = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
   return (sundayFirst + 6) % 7;
+}
+
+function yearToPin(year: number | undefined): string {
+  if (year === undefined) return "";
+  return String(year).padStart(4, "0").slice(-4);
+}
+
+function YearPin({
+  value,
+  onChange,
+  id,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  id: string;
+}) {
+  const ref0 = useRef<HTMLInputElement>(null);
+  const ref1 = useRef<HTMLInputElement>(null);
+  const ref2 = useRef<HTMLInputElement>(null);
+  const ref3 = useRef<HTMLInputElement>(null);
+  const refs = [ref0, ref1, ref2, ref3];
+
+  function handleKey(idx: number, e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Backspace") {
+      e.preventDefault();
+      if (value[idx]) {
+        onChange(value.slice(0, idx) + value.slice(idx + 1));
+      } else if (idx > 0) {
+        onChange(value.slice(0, idx - 1) + value.slice(idx));
+        refs[idx - 1].current?.focus();
+      }
+    }
+  }
+
+  function handleChange(idx: number, e: ChangeEvent<HTMLInputElement>) {
+    const char = e.target.value.replace(/\D/g, "").slice(-1);
+    if (!char) return;
+    const arr = (value + "    ").slice(0, 4).split("");
+    arr[idx] = char;
+    const next = arr.join("").trimEnd().slice(0, 4);
+    onChange(next);
+    if (idx < 3) refs[idx + 1].current?.focus();
+  }
+
+  return (
+    <div className="flex justify-center gap-2.5" id={id}>
+      {[0, 1, 2, 3].map((idx) => (
+        <input
+          key={idx}
+          ref={refs[idx]}
+          type="text"
+          inputMode="numeric"
+          autoComplete="off"
+          maxLength={1}
+          aria-label={`${idx + 1}`}
+          value={value[idx] ?? ""}
+          onChange={(e) => handleChange(idx, e)}
+          onKeyDown={(e) => handleKey(idx, e)}
+          onClick={() => refs[idx].current?.select()}
+          className="h-16 w-14 select-none rounded-xl border border-white/20 bg-white/10 text-center text-2xl font-black text-white caret-transparent transition-all focus:border-blue-400/70 focus:bg-white/15 focus:outline-none"
+        />
+      ))}
+    </div>
+  );
 }
 
 export function CardForm({
@@ -50,20 +122,19 @@ export function CardForm({
   const today = todayCivil();
 
   const [name, setName] = useState(initialData?.name ?? "");
-  const [yearText, setYearText] = useState(
-    initialData ? String(initialData.year) : "",
-  );
+  const [yearText, setYearText] = useState(yearToPin(initialData?.year));
   const [month, setMonth] = useState<number | null>(
     initialData?.month ?? null,
   );
   const [day, setDay] = useState<number | null>(initialData?.day ?? null);
   const [error, setError] = useState<string | null>(null);
-  const [step, setStep] = useState<Step>("details");
+  const [step, setStep] = useState<Step>(1);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const yearNum = Number.parseInt(yearText, 10);
+  const yearComplete = yearText.length === 4 && Number.isInteger(yearNum);
   const yearValid =
-    Number.isInteger(yearNum) && yearNum >= 0 && yearNum <= today.year;
+    yearComplete && yearNum >= 0 && yearNum <= today.year;
   const nameOk = name.trim().length > 0;
   const monthOk = month !== null;
   const detailsComplete = nameOk && yearValid && monthOk;
@@ -110,7 +181,7 @@ export function CardForm({
   function goBack() {
     setError(null);
     setConfirmingDelete(false);
-    setStep("details");
+    setStep(1);
   }
 
   function goForward() {
@@ -137,7 +208,7 @@ export function CardForm({
     ) {
       setDay(null);
     }
-    setStep("day");
+    setStep(2);
   }
 
   function onYearChange(value: string) {
@@ -145,6 +216,7 @@ export function CardForm({
     setYearText(next);
     const nextYear = Number.parseInt(next, 10);
     if (
+      next.length === 4 &&
       Number.isInteger(nextYear) &&
       month !== null &&
       !isYearMonthNotFuture(nextYear, month, today)
@@ -175,32 +247,69 @@ export function CardForm({
   }
 
   const fieldClass =
-    "w-full rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-base text-white transition-all placeholder:text-white/40 focus:border-blue-400/60 focus:bg-white/15 focus:outline-none";
+    "w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-base text-white transition-all placeholder:text-white/25 focus:border-blue-400/60 focus:bg-white/15 focus:outline-none";
 
-  const summary =
-    detailsComplete && month !== null
-      ? `${name.trim()} · ${monthNames[month - 1]} ${yearNum}`
-      : null;
+  const summaryReady = detailsComplete && month !== null;
+  const summaryName = name.trim();
+  const summaryDate =
+    month !== null ? `${monthNames[month - 1]} ${yearNum}` : null;
+
+  const deleteButton = !isNew && onDelete ? (
+    confirmingDelete ? (
+      <div className="mt-3 space-y-2 rounded-2xl border border-red-500/30 bg-red-500/5 p-3">
+        <p className="text-center text-sm font-medium text-red-200">
+          {t("confirmDelete")}
+        </p>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setConfirmingDelete(false)}
+            className="flex-1 rounded-xl border border-white/20 py-2.5 text-sm font-bold text-white/80 transition-all hover:bg-white/10"
+          >
+            {t("confirmDeleteCancel")}
+          </button>
+          <button
+            type="button"
+            onClick={onDelete}
+            className="flex-1 rounded-xl bg-red-500/80 py-2.5 text-sm font-bold text-white transition-all hover:bg-red-500"
+          >
+            {t("confirmDeleteYes")}
+          </button>
+        </div>
+      </div>
+    ) : (
+      <button
+        type="button"
+        onClick={() => setConfirmingDelete(true)}
+        className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-red-500/30 py-3 text-sm font-bold text-red-400 transition-all hover:border-red-500/60 hover:bg-red-500/10"
+      >
+        <Trash2 className="h-4 w-4" aria-hidden />
+        {t("deleteCard")}
+      </button>
+    )
+  ) : null;
 
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="flex h-full w-full flex-col rounded-[2.5rem] border border-indigo-400/20 bg-indigo-950/80 p-6 shadow-2xl shadow-indigo-950 backdrop-blur-2xl sm:p-8"
+      className="flex h-full w-full flex-col overflow-hidden rounded-[2.5rem] border border-indigo-400/20 bg-indigo-950/80 shadow-2xl shadow-indigo-950 backdrop-blur-2xl"
     >
-      <div className="mb-3 flex items-center justify-between gap-2">
-        {step === "day" ? (
-          <button
-            type="button"
-            onClick={goBack}
-            className="flex items-center gap-1 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-sm font-bold text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-          >
-            <ChevronLeft className="h-4 w-4" aria-hidden />
-            {t("formBack")}
-          </button>
-        ) : (
-          <span />
-        )}
+      <div className="flex items-center justify-between px-7 pt-6 pb-2">
+        <div className="flex items-center gap-2" aria-hidden>
+          {[1, 2].map((s) => (
+            <div
+              key={s}
+              className={`h-2 w-2 rounded-full transition-all duration-300 ${
+                s === step
+                  ? "bg-blue-400"
+                  : s < step
+                    ? "bg-blue-400/40"
+                    : "bg-white/15"
+              }`}
+            />
+          ))}
+        </div>
         {onCancel ? (
           <button
             type="button"
@@ -210,215 +319,212 @@ export function CardForm({
           >
             <X className="h-5 w-5 text-white/50" aria-hidden />
           </button>
-        ) : null}
+        ) : (
+          <span />
+        )}
       </div>
 
       <form
         onSubmit={handleSubmit}
-        className="flex min-h-0 flex-1 flex-col overflow-y-auto pr-1"
+        className="flex min-h-0 flex-1 flex-col overflow-hidden"
       >
-        {step === "details" ? (
-          <div className="space-y-3">
-            <div className="space-y-1">
-              <label
-                htmlFor={nameId}
-                className="ml-1 text-xs font-bold uppercase tracking-widest text-white/70"
-              >
-                {t("labelName")}
-              </label>
-              <input
-                id={nameId}
-                type="text"
-                placeholder={t("namePlaceholder")}
-                autoFocus={isNew}
-                className={fieldClass}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
+        {step === 1 ? (
+          <div className="flex flex-1 flex-col px-7 pb-7">
+            <div className="flex flex-1 flex-col justify-evenly gap-4">
+              <div className="flex flex-col gap-3">
+                <label
+                  htmlFor={nameId}
+                  className="text-xs font-bold tracking-widest text-white/50 uppercase"
+                >
+                  {t("labelName")}
+                </label>
+                <input
+                  id={nameId}
+                  type="text"
+                  placeholder={t("namePlaceholder")}
+                  autoFocus={isNew}
+                  className={fieldClass}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <label
+                  htmlFor={yearId}
+                  className="text-xs font-bold tracking-widest text-white/50 uppercase"
+                >
+                  {t("labelYear")}
+                </label>
+                <YearPin
+                  id={yearId}
+                  value={yearText}
+                  onChange={onYearChange}
+                />
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <label
+                  htmlFor={monthId}
+                  className="text-xs font-bold tracking-widest text-white/50 uppercase"
+                >
+                  {t("labelMonth")}
+                </label>
+                <select
+                  id={monthId}
+                  className={fieldClass}
+                  value={month ?? ""}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setMonth(v === "" ? null : Number.parseInt(v, 10));
+                    setDay(null);
+                  }}
+                >
+                  <option value="" className="bg-[#0a0a20] text-white/40">
+                    —
+                  </option>
+                  {monthNames.map((label, index) => {
+                    const monthValue = index + 1;
+                    const disabled =
+                      yearValid &&
+                      !isYearMonthNotFuture(yearNum, monthValue, today);
+                    return (
+                      <option
+                        key={label}
+                        value={monthValue}
+                        disabled={disabled}
+                        className="bg-[#0a0a20] text-white"
+                      >
+                        {label}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
             </div>
 
-            <div className="space-y-1">
-              <label
-                htmlFor={yearId}
-                className="ml-1 text-xs font-bold uppercase tracking-widest text-white/70"
-              >
-                {t("labelYear")}
-              </label>
-              <input
-                id={yearId}
-                type="text"
-                inputMode="numeric"
-                autoComplete="bday-year"
-                placeholder={t("yearPlaceholder")}
-                className={fieldClass}
-                value={yearText}
-                onChange={(e) => onYearChange(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label
-                htmlFor={monthId}
-                className="ml-1 text-xs font-bold uppercase tracking-widest text-white/70"
-              >
-                {t("labelMonth")}
-              </label>
-              <select
-                id={monthId}
-                className={fieldClass}
-                value={month ?? ""}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setMonth(v === "" ? null : Number.parseInt(v, 10));
-                }}
-              >
-                <option value="" className="bg-indigo-950 text-white">
-                  {t("selectMonth")}
-                </option>
-                {monthNames.map((label, index) => {
-                  const monthValue = index + 1;
-                  const disabled =
-                    yearValid &&
-                    !isYearMonthNotFuture(yearNum, monthValue, today);
-                  return (
-                    <option
-                      key={label}
-                      value={monthValue}
-                      disabled={disabled}
-                      className="bg-indigo-950 text-white"
-                    >
-                      {label}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-          </div>
-        ) : null}
-
-        {step === "day" ? (
-          <div className="space-y-3">
-            {summary ? (
-              <p className="text-center text-sm font-bold tracking-wide text-white/55">
-                {summary}
+            {error ? (
+              <p className="mt-3 text-sm font-medium text-red-300" role="alert">
+                {error}
               </p>
             ) : null}
 
-            <p className="ml-1 text-xs font-bold uppercase tracking-widest text-white/70">
-              {t("labelDay")}
-            </p>
-
-            <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-bold tracking-wide text-white/40">
-              {weekdayShort.map((label) => (
-                <div key={label} className="py-1">
-                  {label}
-                </div>
-              ))}
-            </div>
-
-            <div
-              className="grid grid-cols-7 gap-1.5"
-              role="listbox"
-              aria-label={t("labelDay")}
+            <button
+              type="button"
+              onClick={goForward}
+              disabled={!detailsComplete}
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-500/80 py-3.5 text-base font-bold text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-blue-500 disabled:pointer-events-none disabled:opacity-30"
             >
-              {calendarCells.map((d, index) => {
-                if (d === null) {
-                  return <div key={`e-${index}`} className="aspect-square" />;
-                }
-                const selectable = isDaySelectable(yearNum, month!, d, today);
-                const selected = day === d;
-                return (
-                  <button
-                    key={d}
-                    type="button"
-                    role="option"
-                    aria-selected={selected}
-                    aria-disabled={!selectable}
-                    disabled={!selectable}
-                    onClick={() => {
-                      if (selectable) setDay(d);
-                    }}
-                    className={`aspect-square rounded-lg text-sm font-bold transition-all ${
-                      selected
-                        ? "bg-blue-500 text-white shadow-[0_0_10px_rgba(59,130,246,0.45)]"
-                        : selectable
-                          ? "bg-white/10 text-white/80 hover:bg-white/20 hover:text-white"
-                          : "cursor-not-allowed bg-white/5 text-white/25"
-                    }`}
-                  >
-                    {d}
-                  </button>
-                );
-              })}
-            </div>
+              {t("formNext")} <ArrowRight className="h-4 w-4" aria-hidden />
+            </button>
+
+            {deleteButton}
           </div>
         ) : null}
 
-        {error ? (
-          <p className="mt-3 text-sm font-medium text-red-300" role="alert">
-            {error}
-          </p>
-        ) : null}
-      </form>
+        {step === 2 ? (
+          <div className="flex flex-1 flex-col px-7 pb-7">
+            <div className="flex min-h-0 flex-1 flex-col">
+              <div className="min-h-2 flex-1" aria-hidden />
+              <div className="w-full shrink-0">
+                {summaryReady && summaryDate ? (
+                  <div className="mb-4 text-center">
+                    <p className="text-sm font-bold tracking-wide text-white/80">
+                      {summaryName}
+                    </p>
+                    <p className="mt-1 text-sm font-bold tracking-wide text-white/55">
+                      {summaryDate}
+                    </p>
+                  </div>
+                ) : null}
+                <div className="mb-2 grid grid-cols-7">
+                  {weekdayShort.map((label) => (
+                    <div
+                      key={label}
+                      className="py-1 text-center text-[10px] font-bold tracking-widest text-white/30 uppercase"
+                    >
+                      {label}
+                    </div>
+                  ))}
+                </div>
 
-      {step === "details" ? (
-        <div className="mt-4 space-y-3">
-          <button
-            type="button"
-            onClick={goForward}
-            disabled={!detailsComplete}
-            className="w-full rounded-2xl bg-purple-500/85 py-3.5 font-bold text-white transition-all hover:bg-purple-500 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {t("formNext")}
-          </button>
-
-          {!isNew && onDelete ? (
-            confirmingDelete ? (
-              <div className="space-y-2 rounded-2xl border border-red-500/30 bg-red-500/5 p-3">
-                <p className="text-center text-sm font-medium text-red-200">
-                  {t("confirmDelete")}
-                </p>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setConfirmingDelete(false)}
-                    className="flex-1 rounded-xl border border-white/20 py-2.5 text-sm font-bold text-white/80 transition-all hover:bg-white/10"
-                  >
-                    {t("confirmDeleteCancel")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={onDelete}
-                    className="flex-1 rounded-xl bg-red-500/80 py-2.5 text-sm font-bold text-white transition-all hover:bg-red-500"
-                  >
-                    {t("confirmDeleteYes")}
-                  </button>
+                <div
+                  className="grid grid-cols-7 gap-1"
+                  role="listbox"
+                  aria-label={t("labelDay")}
+                >
+                  {calendarCells.map((d, index) => {
+                    if (d === null) {
+                      return <div key={`e-${index}`} />;
+                    }
+                    const selectable = isDaySelectable(
+                      yearNum,
+                      month!,
+                      d,
+                      today,
+                    );
+                    const selected = day === d;
+                    const isToday =
+                      yearNum === today.year &&
+                      month === today.month &&
+                      d === today.day;
+                    return (
+                      <button
+                        key={d}
+                        type="button"
+                        role="option"
+                        aria-selected={selected}
+                        aria-disabled={!selectable}
+                        disabled={!selectable}
+                        onClick={() => {
+                          if (selectable) setDay(d);
+                        }}
+                        className={`flex aspect-square items-center justify-center rounded-lg text-sm font-bold transition-all ${
+                          selected
+                            ? "scale-105 bg-blue-500 text-white shadow-lg shadow-blue-500/40"
+                            : !selectable
+                              ? "cursor-not-allowed border border-white/5 bg-white/[0.03] text-white/15"
+                              : isToday
+                                ? "border border-indigo-400/50 bg-indigo-500/30 text-indigo-200 hover:bg-indigo-500/50"
+                                : "border border-indigo-400/15 bg-indigo-900/50 text-white/75 hover:border-indigo-400/40 hover:bg-indigo-700/60 hover:text-white"
+                        }`}
+                      >
+                        {d}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
-            ) : (
+              <div className="min-h-2 flex-1" aria-hidden />
+            </div>
+
+            {error ? (
+              <p className="mt-3 text-sm font-medium text-red-300" role="alert">
+                {error}
+              </p>
+            ) : null}
+
+            <div className="mt-4 flex gap-3">
               <button
                 type="button"
-                onClick={() => setConfirmingDelete(true)}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-red-500/30 py-3 text-sm font-bold text-red-400 transition-all hover:border-red-500/60 hover:bg-red-500/10"
+                onClick={goBack}
+                className="flex items-center gap-1.5 rounded-2xl border border-white/15 px-4 py-3 text-sm font-bold text-white/50 transition-all hover:border-white/30 hover:text-white"
               >
-                <Trash2 className="h-4 w-4" aria-hidden />
-                {t("deleteCard")}
+                <ArrowLeft className="h-4 w-4" aria-hidden />
+                {t("formBack")}
               </button>
-            )
-          ) : null}
-        </div>
-      ) : null}
-
-      {step === "day" ? (
-        <button
-          type="button"
-          onClick={() => handleSubmit()}
-          disabled={!canFinish}
-          className="mt-4 w-full transform rounded-2xl bg-purple-500/85 py-3.5 font-bold text-white shadow-xl shadow-purple-950/30 transition-all hover:bg-purple-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          {t("done")}
-        </button>
-      ) : null}
+              <button
+                type="button"
+                onClick={() => handleSubmit()}
+                disabled={!canFinish}
+                className="flex-1 rounded-2xl bg-white py-3 text-base font-bold text-black shadow-xl transition-all hover:bg-blue-50 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-30"
+              >
+                {t("done")}
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </form>
     </motion.div>
   );
 }

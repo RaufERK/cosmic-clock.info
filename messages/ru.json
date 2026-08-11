@@ -69,6 +69,8 @@
     "dateErrorFuture": "Начальная дата не может быть в будущем.",
     "formNext": "Далее",
     "formBack": "Назад",
+    "sortNewestFirst": "Сначала новые",
+    "sortOldestFirst": "Сначала старые",
     "formDetailsHint": "Когда заполнены название, год и месяц — откроется календарь дня.",
     "weekdayShort": [
       "пн",

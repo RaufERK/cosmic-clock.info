@@ -2,9 +2,13 @@ import type { CardFormValues } from "@/components/CardForm";
 
 export type CardData = CardFormValues & {
   id: string;
+  /** ISO timestamp of card creation; display sort uses this only. */
+  createdAt?: string;
   /** ISO timestamp; used for merge freshness (localStorage + DB). */
   updatedAt?: string;
 };
+
+export type CardSortOrder = "newest" | "oldest";
 
 /** Single guest seed: The Summit Lighthouse founded 7 Aug 1958. Name from i18n. */
 export const GUEST_EXAMPLE_SEED = {
@@ -39,6 +43,32 @@ export function cardDateKey(card: {
   day: number;
 }): string {
   return `${card.year}-${card.month}-${card.day}`;
+}
+
+/** Milliseconds for display sort; missing createdAt falls back to updatedAt, then 0. */
+export function cardCreatedAtMs(card: {
+  createdAt?: string;
+  updatedAt?: string;
+}): number {
+  const raw = card.createdAt ?? card.updatedAt;
+  if (!raw) return 0;
+  const ms = Date.parse(raw);
+  return Number.isNaN(ms) ? 0 : ms;
+}
+
+/** Display order by card creation time (not start date). Edits must not change createdAt. */
+export function compareCardsByCreatedAt(
+  a: { createdAt?: string; updatedAt?: string },
+  b: { createdAt?: string; updatedAt?: string },
+): number {
+  return cardCreatedAtMs(a) - cardCreatedAtMs(b);
+}
+
+export function sortCardsByCreatedAt<
+  T extends { createdAt?: string; updatedAt?: string },
+>(cards: T[], order: CardSortOrder = "newest"): T[] {
+  const sorted = [...cards].sort(compareCardsByCreatedAt);
+  return order === "newest" ? sorted.reverse() : sorted;
 }
 
 /** Display order: older start dates first. */

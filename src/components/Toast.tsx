@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { X } from "lucide-react";
+import { AlertCircle, X } from "lucide-react";
 
 export type ToastVariant = "error" | "success";
 
@@ -30,7 +30,7 @@ export function Toast({ toast, onDismiss, durationMs = 4500 }: Props) {
 
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 bottom-8 z-[60] flex justify-center px-4 sm:bottom-10"
+      className="pointer-events-none fixed bottom-6 left-1/2 z-[100] flex -translate-x-1/2 flex-col items-center gap-2 px-4"
       aria-live="polite"
     >
       <AnimatePresence mode="wait">
@@ -38,22 +38,30 @@ export function Toast({ toast, onDismiss, durationMs = 4500 }: Props) {
           <motion.div
             key={toast.id}
             role={isError ? "alert" : "status"}
-            initial={{ opacity: 0, y: 28, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 16, scale: 0.96 }}
-            transition={{ duration: 0.28, ease: "easeOut" }}
-            className="pointer-events-auto flex max-w-lg items-start gap-3 rounded-2xl border border-[#e8a0b4]/35 bg-[#6b0f2a]/95 px-5 py-4 text-white shadow-[0_12px_40px_rgba(80,8,28,0.55)] backdrop-blur-xl"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className={
+              isError
+                ? "pointer-events-auto flex max-w-lg items-center gap-3 rounded-2xl border border-rose-500/50 bg-rose-900/95 px-6 py-3.5 text-base font-bold text-rose-100 shadow-2xl shadow-rose-950/80 backdrop-blur-xl"
+                : "pointer-events-auto flex max-w-lg items-center gap-3 rounded-2xl border border-emerald-500/40 bg-emerald-950/95 px-6 py-3.5 text-base font-bold text-emerald-100 shadow-2xl shadow-emerald-950/80 backdrop-blur-xl"
+            }
           >
-            <p className="flex-1 text-base leading-snug font-bold tracking-wide sm:text-lg">
-              {toast.text}
-            </p>
+            {isError ? (
+              <AlertCircle
+                className="h-4 w-4 flex-shrink-0 text-rose-400"
+                aria-hidden
+              />
+            ) : null}
+            <p className="flex-1 leading-snug tracking-wide">{toast.text}</p>
             <button
               type="button"
               onClick={onDismiss}
               className="shrink-0 rounded-lg p-1.5 text-white/50 transition-colors hover:bg-white/10 hover:text-white"
               aria-label="Close"
             >
-              <X className="h-5 w-5" aria-hidden />
+              <X className="h-4 w-4" aria-hidden />
             </button>
           </motion.div>
         ) : null}

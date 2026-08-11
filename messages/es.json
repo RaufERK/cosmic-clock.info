@@ -69,6 +69,8 @@
     "dateErrorFuture": "La fecha de inicio no puede ser futura.",
     "formNext": "Siguiente",
     "formBack": "Atrás",
+    "sortNewestFirst": "Más recientes primero",
+    "sortOldestFirst": "Más antiguos primero",
     "formDetailsHint": "Con nombre, año y mes listos, se abre el calendario del día.",
     "weekdayShort": [
       "lun",

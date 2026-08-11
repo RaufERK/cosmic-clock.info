@@ -54,6 +54,7 @@ function toCardData(row: {
   day: number;
   month: number;
   year: number;
+  createdAt?: Date;
   updatedAt?: Date;
 }): CardData {
   return {
@@ -62,6 +63,7 @@ function toCardData(row: {
     day: row.day,
     month: row.month,
     year: row.year,
+    createdAt: row.createdAt?.toISOString(),
     updatedAt: row.updatedAt?.toISOString(),
   };
 }
@@ -93,7 +95,7 @@ export async function listMyCardsAction(): Promise<CardActionResult> {
   try {
     const rows = await prisma.card.findMany({
       where: { userId },
-      orderBy: [{ year: "asc" }, { month: "asc" }, { day: "asc" }],
+      orderBy: { createdAt: "desc" },
     });
     return { ok: true, cards: rows.map(toCardData) };
   } catch {
@@ -275,7 +277,7 @@ export async function mergeLocalCardsAction(
 
     const rows = await prisma.card.findMany({
       where: { userId },
-      orderBy: [{ year: "asc" }, { month: "asc" }, { day: "asc" }],
+      orderBy: { createdAt: "desc" },
     });
 
     const added = rows.filter((r) => !beforeIds.has(r.id)).length;
