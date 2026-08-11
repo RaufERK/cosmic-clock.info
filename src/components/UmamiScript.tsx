@@ -1,10 +1,8 @@
-"use client";
-
 import Script from "next/script";
 
 /**
  * Umami tracker — first-party via nginx `/ua.js` → PM2 umami :3030.
- * Set NEXT_PUBLIC_UMAMI_WEBSITE_ID (and optional SCRIPT_URL) in env.
+ * Server-rendered so `data-website-id` is on the real <script> tag (tracker needs currentScript).
  */
 export function UmamiScript() {
   const websiteId = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
@@ -16,7 +14,6 @@ export function UmamiScript() {
 
   return (
     <Script
-      defer
       src={src}
       strategy="afterInteractive"
       data-website-id={websiteId}
