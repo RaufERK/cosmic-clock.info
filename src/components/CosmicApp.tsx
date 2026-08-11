@@ -323,7 +323,7 @@ export function CosmicApp() {
         <div className="absolute right-[-10%] bottom-[-10%] h-[60%] w-[60%] rounded-full bg-purple-600/10 blur-[150px]" />
       </div>
 
-      <nav className="relative z-10 mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-8 pt-8 pb-16 md:flex-row">
+      <nav className="relative z-10 mx-auto flex w-full flex-col items-center justify-between gap-4 px-6 pt-8 pb-16 sm:px-8 md:flex-row lg:px-10">
         <div className="flex items-center overflow-hidden rounded-xl border border-white/25">
           {locales.map((code, idx) => (
             <Link
@@ -423,12 +423,12 @@ export function CosmicApp() {
         </div>
       </nav>
 
-      <main className="relative z-10 mx-auto max-w-7xl px-8 pb-32">
+      <main className="relative z-10 mx-auto w-full px-6 pb-32 sm:px-8 lg:px-10">
         {!ready ? (
           <div className="py-24 text-center text-white/30">{t("loading")}</div>
         ) : (
           <div
-            className={`grid grid-cols-1 gap-10 md:grid-cols-2 xl:grid-cols-3 ${
+            className={`grid justify-center gap-8 [grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),380px))] ${
               cardsPending ? "opacity-70" : ""
             }`}
           >
