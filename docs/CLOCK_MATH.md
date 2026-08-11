@@ -73,6 +73,8 @@ dayRotation   = monthFraction * 360
 
 **Legend “hour”** for a hand = which 30° sector the tip is in (sector 0 → display **12**, else 1–11). That is a coarse stage label; the hand angle itself is continuous.
 
+**Legend names (UI):** sector 0–11 map to the twelve God-qualities (God Power … God Victory), localized in `messages/*/clockHours`.
+
 ## What we do *not* use
 
 - Ephemeris / Swiss Ephemeris / natal planet positions

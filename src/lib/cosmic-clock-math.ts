@@ -144,6 +144,11 @@ export function getSector(rotation: number): number {
   return Math.floor(normalizeDegrees(rotation) / 30);
 }
 
+/** Index 0–11 for dial sector (0 = 12 o'clock / God Power … 11 = God Victory). */
+export function getHandHourIndex(rotation: number): number {
+  return getSector(rotation);
+}
+
 /** Coarse stage label: sector 0 → 12, else 1–11. */
 export function getHandHour(rotation: number): number {
   const sector = getSector(rotation);
