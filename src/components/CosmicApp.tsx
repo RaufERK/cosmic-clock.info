@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { LogOut, Plus, Settings } from "lucide-react";
+import { ChevronDown, LogOut, Plus, Settings } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useLocale, useTranslations } from "next-intl";
 import { AuthModal } from "@/components/AuthModal";
@@ -10,7 +10,7 @@ import { CardForm, type CardFormValues } from "@/components/CardForm";
 import { ChangePasswordModal } from "@/components/ChangePasswordModal";
 import { CosmicClock } from "@/components/CosmicClock";
 import { Toast, type ToastMessage, type ToastVariant } from "@/components/Toast";
-import { Link, usePathname } from "@/i18n/navigation";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
 import {
   createCardAction,
@@ -52,6 +52,7 @@ export function CosmicApp() {
   const t = useTranslations("app");
   const locale = useLocale() as AppLocale;
   const pathname = usePathname();
+  const router = useRouter();
   const months = t.raw("months") as string[];
   const clockHours = t.raw("clockHours") as string[];
   const { data: session, status, update } = useSession();
@@ -65,6 +66,8 @@ export function CosmicApp() {
   const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [toast, setToast] = useState<ToastMessage | null>(null);
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const langMenuRef = useRef<HTMLDivElement>(null);
 
   const userLogin = session?.user?.login ?? null;
   const isLoggedIn = Boolean(session?.user?.id && session?.user?.login);
@@ -187,6 +190,24 @@ export function CosmicApp() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionReady, session?.user?.id, locale]);
+
+  useEffect(() => {
+    if (!langMenuOpen) return;
+
+    function onPointerDown(event: MouseEvent | TouchEvent) {
+      const target = event.target as Node;
+      if (!langMenuRef.current?.contains(target)) {
+        setLangMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("touchstart", onPointerDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("touchstart", onPointerDown);
+    };
+  }, [langMenuOpen]);
 
   function addCard(data: CardFormValues) {
     if (!isLoggedIn) {
@@ -325,39 +346,61 @@ export function CosmicApp() {
         <div className="absolute right-[-10%] bottom-[-10%] h-[60%] w-[60%] rounded-full bg-purple-600/10 blur-[150px]" />
       </div>
 
-      <nav className="relative z-10 mx-auto flex w-full flex-col items-center pb-16 md:flex-row md:justify-between md:gap-4 md:px-8 md:pt-8 lg:px-10">
-        <div className="flex w-full items-stretch overflow-hidden border-b border-white/25 md:contents">
-          <div className="flex min-w-0 flex-1 items-center md:order-1 md:flex-none md:overflow-hidden md:rounded-xl md:border md:border-white/25">
-            {locales.map((code, idx) => (
-              <Link
-                key={code}
-                href={pathname}
-                locale={code}
-                className={`px-2 py-1.5 text-xs font-bold tracking-wider transition-all md:px-3 md:py-1.5 md:text-xs md:tracking-widest ${
-                  idx > 0 ? "border-l border-white/25" : ""
-                } ${
-                  idx === locales.length - 1
-                    ? "border-r border-white/25 md:border-r-0"
-                    : ""
-                } ${
-                  locale === code
-                    ? "bg-blue-500/25 text-blue-300"
-                    : "text-white/70 hover:bg-white/10 hover:text-white"
-                }`}
+      <nav className="relative z-40 mx-auto w-full max-w-7xl px-5 pt-4 pb-8 md:px-8 md:pt-8 md:pb-12 lg:px-10">
+        {/* Mobile: language select + auth, then full-bleed title */}
+        <div className="mb-8 flex items-center justify-between gap-3 md:hidden">
+          <div ref={langMenuRef} className="relative">
+            <button
+              type="button"
+              aria-label="Language"
+              aria-expanded={langMenuOpen}
+              aria-haspopup="listbox"
+              onClick={() => setLangMenuOpen((open) => !open)}
+              className="flex items-center gap-1 rounded-xl border border-white/25 bg-white/5 px-2.5 py-1.5 text-xs font-bold text-white/70 transition-all hover:bg-white/10 hover:text-white"
+            >
+              {LOCALE_LABEL[locale]}
+              <ChevronDown
+                className={`h-3 w-3 transition-transform ${langMenuOpen ? "rotate-180" : ""}`}
+                aria-hidden
+              />
+            </button>
+            {langMenuOpen ? (
+              <ul
+                role="listbox"
+                className="absolute top-full left-0 z-50 mt-1.5 min-w-[4.5rem] overflow-hidden rounded-xl border border-white/25 bg-[#0a0a20] shadow-xl"
               >
-                {LOCALE_LABEL[code]}
-              </Link>
-            ))}
+                {locales.map((code) => (
+                  <li key={code} role="option" aria-selected={locale === code}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLangMenuOpen(false);
+                        if (code !== locale) {
+                          router.replace(pathname, { locale: code });
+                        }
+                      }}
+                      className={`block w-full px-2.5 py-1.5 text-left text-xs font-bold transition-all ${
+                        locale === code
+                          ? "bg-blue-500/25 text-blue-300"
+                          : "text-white/70 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      {LOCALE_LABEL[code]}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </div>
 
-          <div className="flex shrink-0 items-center border-l border-white/25 md:order-3 md:overflow-hidden md:rounded-xl md:border md:border-white/25">
+          <div className="flex items-center overflow-hidden rounded-xl border border-white/25">
             {userLogin ? (
               <>
                 <button
                   type="button"
                   onClick={() => setChangePasswordOpen(true)}
                   title={t("changePasswordTitle")}
-                  className="max-w-[4.5rem] truncate border-r border-white/25 px-2 py-1.5 text-xs font-bold text-white/70 transition-all hover:bg-white/10 hover:text-white sm:max-w-[7rem] md:max-w-[130px] md:px-4 md:py-2 md:text-sm"
+                  className="max-w-[5.5rem] truncate border-r border-white/25 px-2.5 py-1.5 text-xs font-bold text-white/70 transition-all hover:bg-white/10 hover:text-white"
                 >
                   {userLogin}
                 </button>
@@ -365,9 +408,9 @@ export function CosmicApp() {
                   type="button"
                   onClick={onLogout}
                   disabled={logoutPending || status === "loading"}
-                  className="flex items-center gap-1 px-2 py-1.5 text-xs font-bold text-blue-300 transition-all hover:bg-blue-500/30 hover:text-white disabled:opacity-60 md:gap-1.5 md:px-4 md:py-2 md:text-sm"
+                  className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-blue-300 transition-all hover:bg-blue-500/30 hover:text-white disabled:opacity-60"
                 >
-                  <LogOut className="h-3 w-3 md:h-4 md:w-4" aria-hidden />
+                  <LogOut className="h-3.5 w-3.5" aria-hidden />
                   {t("logout")}
                 </button>
               </>
@@ -376,14 +419,14 @@ export function CosmicApp() {
                 <button
                   type="button"
                   onClick={() => setAuthModal("login")}
-                  className="border-r border-white/25 px-2 py-1.5 text-xs font-bold text-white/70 transition-all hover:bg-white/10 hover:text-white md:px-4 md:py-2 md:text-sm"
+                  className="border-r border-white/25 px-2.5 py-1.5 text-xs font-bold text-white/70 transition-all hover:bg-white/10 hover:text-white"
                 >
                   {t("login")}
                 </button>
                 <button
                   type="button"
                   onClick={() => setAuthModal("register")}
-                  className="px-2 py-1.5 text-xs font-bold text-blue-300 transition-all hover:bg-blue-500/30 hover:text-white md:px-4 md:py-2 md:text-sm"
+                  className="px-2.5 py-1.5 text-xs font-bold text-blue-300 transition-all hover:bg-blue-500/30 hover:text-white"
                 >
                   {t("register")}
                 </button>
@@ -395,40 +438,150 @@ export function CosmicApp() {
         <motion.div
           initial="initial"
           whileHover="hover"
-          className="group relative order-2 mt-6 w-full flex-1 cursor-default px-6 text-center sm:px-8 md:mt-0 md:px-0"
+          className="-mx-5 cursor-default text-center md:hidden"
         >
           <motion.svg
             variants={{
               initial: {
                 filter: "drop-shadow(0 0 0px rgba(59,130,246,0))",
-                scale: 1,
               },
               hover: {
                 filter: "drop-shadow(0 0 18px rgba(59,130,246,0.65))",
-                scale: 1.04,
               },
             }}
             viewBox="0 0 720 65"
-            className="mx-auto w-full max-w-lg md:max-w-xl"
+            className="mx-auto w-full"
             overflow="visible"
-            style={{ transition: "filter 0.5s, transform 0.5s" }}
+            style={{ transition: "filter 0.5s" }}
           >
             <defs>
-              <path id="titleArc" d="M 10,58 A 3410,3410 0 0,1 710,58" />
+              <path
+                id="titleArcMobile"
+                d="M 10,58 A 3410,3410 0 0,1 710,58"
+              />
             </defs>
             <text
               fill="white"
               fontFamily="Georgia, 'Times New Roman', serif"
               fontWeight="800"
-              fontSize="57"
-              letterSpacing="7"
+              fontSize="52"
+              letterSpacing="5"
             >
-              <textPath href="#titleArc" startOffset="50%" textAnchor="middle">
+              <textPath
+                href="#titleArcMobile"
+                startOffset="50%"
+                textAnchor="middle"
+              >
                 {t("title")}
               </textPath>
             </text>
           </motion.svg>
         </motion.div>
+
+        {/* Desktop: language | title | auth */}
+        <div className="hidden items-center justify-between gap-4 md:flex">
+          <div className="flex items-center overflow-hidden rounded-xl border border-white/25">
+            {locales.map((code, idx) => (
+              <Link
+                key={code}
+                href={pathname}
+                locale={code}
+                className={`px-3 py-1.5 text-xs font-bold tracking-widest transition-all ${
+                  idx > 0 ? "border-l border-white/25" : ""
+                } ${
+                  locale === code
+                    ? "bg-blue-500/25 text-blue-300"
+                    : "text-white/70 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                {LOCALE_LABEL[code]}
+              </Link>
+            ))}
+          </div>
+
+          <motion.div
+            initial="initial"
+            whileHover="hover"
+            className="flex-1 cursor-default text-center"
+          >
+            <motion.svg
+              variants={{
+                initial: {
+                  filter: "drop-shadow(0 0 0px rgba(59,130,246,0))",
+                  scale: 1,
+                },
+                hover: {
+                  filter: "drop-shadow(0 0 18px rgba(59,130,246,0.65))",
+                  scale: 1.04,
+                },
+              }}
+              viewBox="0 0 720 65"
+              className="mx-auto w-full max-w-xl"
+              overflow="visible"
+              style={{ transition: "filter 0.5s, transform 0.5s" }}
+            >
+              <defs>
+                <path id="titleArc" d="M 10,58 A 3410,3410 0 0,1 710,58" />
+              </defs>
+              <text
+                fill="white"
+                fontFamily="Georgia, 'Times New Roman', serif"
+                fontWeight="800"
+                fontSize="57"
+                letterSpacing="7"
+              >
+                <textPath
+                  href="#titleArc"
+                  startOffset="50%"
+                  textAnchor="middle"
+                >
+                  {t("title")}
+                </textPath>
+              </text>
+            </motion.svg>
+          </motion.div>
+
+          <div className="flex items-center overflow-hidden rounded-xl border border-white/25">
+            {userLogin ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setChangePasswordOpen(true)}
+                  title={t("changePasswordTitle")}
+                  className="max-w-[130px] truncate border-r border-white/25 px-4 py-2 text-sm font-bold text-white/70 transition-all hover:bg-white/10 hover:text-white"
+                >
+                  {userLogin}
+                </button>
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  disabled={logoutPending || status === "loading"}
+                  className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-blue-300 transition-all hover:bg-blue-500/30 hover:text-white disabled:opacity-60"
+                >
+                  <LogOut className="h-4 w-4" aria-hidden />
+                  {t("logout")}
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setAuthModal("login")}
+                  className="border-r border-white/25 px-4 py-2 text-sm font-bold text-white/70 transition-all hover:bg-white/10 hover:text-white"
+                >
+                  {t("login")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAuthModal("register")}
+                  className="px-4 py-2 text-sm font-bold text-blue-300 transition-all hover:bg-blue-500/30 hover:text-white"
+                >
+                  {t("register")}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
       </nav>
 
       <main className="relative z-10 mx-auto w-full px-6 pb-32 sm:px-8 lg:px-10">
