@@ -27,7 +27,7 @@ Read before changing product behavior or structure:
 4. **Card limit:** 100 per user — enforce server-side (including migrate/merge).
 5. Prefer small, focused changes. Do not expand into “Later” backlog items unless the user asks.
 6. **Auth doctrine:** login = username (not email); no SMTP / password-reset mail; change-password when signed in; session ~30d; `lastSeenAt`.
-7. **Cards doctrine:** one start date per user; guest → localStorage (seed 1958-08-07); on register/login → merge by date then clear localStorage to `[]`; signed-in → DB only. Seed date `1958-08-07` is never merged into an account.
+7. **Cards doctrine:** one start date per user; guest → localStorage (seed 1958-08-07, never merged into accounts); on register/login → merge by date then clear localStorage to `[]`; signed-in → DB only. **UI list order** = `createdAt` (newest/oldest); edits must not change `createdAt`.
 
 ## Default working language
 

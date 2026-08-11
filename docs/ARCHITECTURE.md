@@ -1,88 +1,71 @@
 # Cosmic Clock — Architecture
 
+Product doctrine: [`PRODUCT.md`](PRODUCT.md). Math: [`CLOCK_MATH.md`](CLOCK_MATH.md). Host: [`INFRA.md`](INFRA.md).
+
 ## Stack
 
-| Layer | Choice | Notes |
-|-------|--------|--------|
-| App | **Next.js** (App Router) + **TypeScript** + **React** | Production app at repo root |
-| Styling | **Tailwind CSS** | |
-| i18n | **next-intl** | Locales: `en`, `ru`, `es`, `pt` (`localePrefix: "always"`) |
-| DB | **PostgreSQL** | Local: Docker Compose; server: system PG 14 — see [`INFRA.md`](INFRA.md) |
-| ORM | **Prisma 7** | Client in `src/generated/prisma`; helper `src/lib/db.ts` |
-| Auth | **Auth.js** (Credentials: **login** + password) | Session ~30d; `lastSeenAt`; **no email/SMTP** |
-| Hosting | VPS **amster** | PM2 + nginx, bind `127.0.0.1:3060` |
-| Domain | `cosmic-clock.info` / `www` | See `deploy/nginx/` |
+| Layer | Choice |
+|-------|--------|
+| App | Next.js App Router + TypeScript + React |
+| UI | Tailwind; main shell `src/components/CosmicApp.tsx` |
+| i18n | next-intl — `en` / `ru` / `es` / `pt` (`localePrefix: always`) |
+| DB | PostgreSQL + Prisma 7 (`src/generated/prisma`, `src/lib/db.ts`) |
+| Auth | Auth.js Credentials (**login** + password), JWT ~30d |
+| Host | VPS amster — PM2 `127.0.0.1:3060`, nginx TLS |
 
-## Repository layout
+## Layout
 
 ```
-/
-├── AGENTS.md              # Agent entry (Next.js notice + pointers)
-├── README.md              # Human quickstart
-├── docs/                  # Product / architecture / math / infra
-├── src/                   # Next.js production app
-│   ├── app/[locale]/     # Locale-scoped routes
-│   ├── components/
-│   ├── i18n/
-│   ├── lib/
-│   └── proxy.ts           # next-intl middleware entry
-├── messages/              # en / ru / es / pt JSON
-├── prisma/                # Schema + migrations
-├── deploy/nginx/          # nginx site config
-└── ecosystem.config.cjs   # PM2 app + deploy
+src/app/[locale]/   routes
+src/components/     CosmicApp, CosmicClock, CardForm, auth UI
+src/lib/            math, cards, guest-cards, card-actions, auth
+src/proxy.ts        next-intl middleware entry
+messages/           locale JSON
+prisma/             schema + migrations
+deploy/nginx/       site configs
+ecosystem.config.cjs
 ```
 
-## Constraints for agents
+Do not add a second app stack under the repo (e.g. design dumps stay out of `src/`).
 
-1. **This Next.js version may differ from training data.** Read guides under `node_modules/next/dist/docs/` before inventing APIs. See root `AGENTS.md`.
-2. **i18n:** all user-facing strings go through `messages/*`.
-3. **Deploy:** production process listens on `127.0.0.1:$PORT` (3060); nginx terminates TLS.
-4. **Auth:** no email, no password-reset mail. Identifier is `login`. Change-password UI only when signed in.
-5. **Cards:** guest → localStorage; signed-in → Postgres. On register/login, migrate/merge local → DB then clear localStorage to `[]`.
-6. **v1 astrology** = date → year/month/day hands ([`CLOCK_MATH.md`](CLOCK_MATH.md)). No ephemeris unless product docs say so.
+## Data model
 
-## Data model (Prisma)
+- **User** — `login`, `passwordHash`, `lastSeenAt`, timestamps  
+- **Card** — `name`, `day`/`month`/`year`, `createdAt`, `updatedAt`; `@@unique([userId, year, month, day])`  
+- Soft cap **100** cards / user (app + merge)
 
-See `prisma/schema.prisma`:
-
-- **User** — `login` unique + `passwordHash` + `createdAt` + `lastSeenAt` + `updatedAt`
-- **Card** — `id`, `userId`, `name`, `day`, `month`, `year`, `createdAt`, `updatedAt`; cascade delete with user
-- **Unique:** `(userId, year, month, day)` — one start date per user
-- Max **100 cards / user** — after date-dedupe; truncate by newest `updatedAt`
-
-No separate “Calendar” entity — **Card** is the unit.
-
-## Card storage flow
+## Card flow
 
 ```
-Guest (no session)
-  └─ if localStorage key missing → seed one card (1958-08-07) from code constant
-  └─ edit/create/delete → localStorage (with updatedAt)
+Guest
+  └─ no localStorage key → seed 1958-08-07
+  └─ CRUD → localStorage (createdAt fixed on create; updatedAt on edit)
 
-Register or Login
-  └─ skip guest seed date 1958-08-07 (demo never enters the account)
-  └─ merge by date (newer updatedAt wins name)
-  └─ keep ≤100 by updatedAt; drop rest
-  └─ write localStorage `[]` (do not remove key — avoids re-seed after logout)
-  └─ show summary message (toast)
+Register / Login
+  └─ skip seed date 1958-08-07
+  └─ merge by start date (newer updatedAt wins name)
+  └─ keep ≤100 by updatedAt
+  └─ localStorage → []
+  └─ toast summary
 
 Signed-in
-  └─ Postgres only (multi-device)
-  └─ duplicate date on create/edit → reject with message
+  └─ Postgres only
+  └─ UI list sorted by createdAt (toggle newest/oldest)
 ```
 
-## Stale user prune
-
-- `npm run users:prune-stale` — delete users with `lastSeenAt` older than 2 years
-- Wired into PM2 deploy; same command usable manually on the server
-
-## Key source paths
+## Key paths
 
 | Concern | Path |
 |---------|------|
-| Main UI | `src/components/CosmicApp.tsx` |
+| Shell / sort UI | `src/components/CosmicApp.tsx` |
+| Create/edit form | `src/components/CardForm.tsx` |
 | Clock face | `src/components/CosmicClock.tsx` |
 | Hand math | `src/lib/cosmic-clock-math.ts` |
 | Guest storage | `src/lib/guest-cards.ts` |
-| Card server actions | `src/lib/card-actions.ts` (and related) |
-| Auth | `src/auth.ts`, auth UI in components |
+| Card actions | `src/lib/card-actions.ts` |
+| Auth | `src/auth.ts` + auth components |
+
+## Ops
+
+- Deploy: `npx pm2 deploy production update` (migrate + `users:prune-stale`)  
+- Prune: users with `lastSeenAt` older than 2 years  
