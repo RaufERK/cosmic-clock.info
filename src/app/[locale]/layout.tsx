@@ -3,6 +3,7 @@ import { getMessages, getTranslations, setRequestLocale } from "next-intl/server
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AuthSessionProvider } from "@/components/AuthSessionProvider";
+import { UmamiScript } from "@/components/UmamiScript";
 import { routing } from "@/i18n/routing";
 import "../globals.css";
 
@@ -52,6 +53,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <html lang={locale} className="h-full">
       <body className="min-h-full antialiased">
+        <UmamiScript />
         <NextIntlClientProvider messages={messages}>
           <AuthSessionProvider>{children}</AuthSessionProvider>
         </NextIntlClientProvider>

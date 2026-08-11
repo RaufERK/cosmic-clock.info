@@ -23,10 +23,25 @@ Key: `~/.ssh/id_ed25519` (from local `~/.ssh/config`)
 
 Deploy: `npx pm2 deploy production update` (from a machine with the deploy key). Runs migrate + `users:prune-stale` as configured in the ecosystem file.
 
+## Umami analytics (same VPS, separate from this git repo)
+
+| | |
+|--|--|
+| Code | `/home/appuser/apps/umami` (clone of umami-software/umami) |
+| Env | `/home/appuser/apps/umami-shared/.env` (+ `ADMIN.txt` for login hint) |
+| PM2 | `umami` → `127.0.0.1:3030` |
+| Tracker (live) | first-party `https://cosmic-clock.info/ua.js` + `/api/send` (nginx → Umami) |
+| Dashboard | `https://stats.cosmic-clock.info` after DNS A + `certbot --nginx -d stats.cosmic-clock.info` |
+| Temp UI | `ssh -L 3030:127.0.0.1:3030 amster_app` → http://127.0.0.1:3030 |
+
+Postgres role/DB **`umami`** (separate from `cosmic_clock`). Adding more sites in Umami does **not** erase existing stats.
+
+Site env (cosmic-clock `shared/.env`): `NEXT_PUBLIC_UMAMI_WEBSITE_ID`, `NEXT_PUBLIC_UMAMI_SCRIPT_URL=/ua.js`.
+
 ## PostgreSQL on server (production)
 
 - PostgreSQL **14**, listens on **`127.0.0.1:5432` only** (not public)
-- Role + DB: **`cosmic_clock`** (credentials only in `shared/.env`)
+- Role + DB: **`cosmic_clock`** (credentials only in `shared/.env`); also **`umami`** for analytics
 
 ```text
 DATABASE_URL=postgresql://cosmic_clock:SECRET@127.0.0.1:5432/cosmic_clock

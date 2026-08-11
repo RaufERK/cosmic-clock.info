@@ -18,5 +18,5 @@ Full detail: `docs/INFRA.md`.
 
 - **Local:** `docker compose up -d` → Postgres 16 on host port **5433**  
   `DATABASE_URL=postgresql://cosmic_clock:cosmic_clock@127.0.0.1:5433/cosmic_clock`
-- **Server:** system PostgreSQL 14 on `127.0.0.1:5432` (not public); role/DB `cosmic_clock` (secrets in `shared/.env` only)
+- **Server:** system PostgreSQL 14 on `127.0.0.1:5432` (not public); role/DB `cosmic_clock` (secrets in `shared/.env` only). Analytics: PM2 `umami` on `:3030` — see `docs/INFRA.md`.
 - Never commit real production secrets.
