@@ -22,7 +22,7 @@ import {
   type MergeCardsResult,
 } from "@/lib/card-actions";
 import { touchLastSeenAction } from "@/lib/auth-actions";
-import { type CardData } from "@/lib/cards";
+import { type CardData, isGuestExampleSeedDate } from "@/lib/cards";
 import {
   addGuestCard,
   clearGuestCards,
@@ -135,7 +135,9 @@ export function CosmicApp() {
 
         void touchLastSeenAction();
 
-        const local = readGuestCards();
+        const local = readGuestCards().filter(
+          (c) => !isGuestExampleSeedDate(c),
+        );
         if (local.length > 0) {
           const mergeResult = await mergeLocalCardsAction(
             local.map((c) => ({

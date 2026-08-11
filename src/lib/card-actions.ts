@@ -4,7 +4,11 @@ import { Prisma } from "@/generated/prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { mergeCardsByDate } from "@/lib/card-merge";
-import { MAX_CARDS_PER_USER, type CardData } from "@/lib/cards";
+import {
+  isGuestExampleSeedDate,
+  MAX_CARDS_PER_USER,
+  type CardData,
+} from "@/lib/cards";
 import { validateStartDate } from "@/lib/start-date";
 
 export type CardInput = {
@@ -204,6 +208,8 @@ export async function mergeLocalCardsAction(
   for (const item of localRaw) {
     const data = validateCardInput(item);
     if (!data) continue;
+    // Demo seed (1958-08-07) stays guest-only — never import into an account.
+    if (isGuestExampleSeedDate(data)) continue;
     const updatedAt = item.updatedAt
       ? new Date(item.updatedAt)
       : new Date();

@@ -20,6 +20,19 @@ export function isExampleCardId(id: string): boolean {
   return id.startsWith("example-");
 }
 
+/** Guest demo date only — never migrate into a signed-in account. */
+export function isGuestExampleSeedDate(card: {
+  year: number;
+  month: number;
+  day: number;
+}): boolean {
+  return (
+    card.year === GUEST_EXAMPLE_SEED.year &&
+    card.month === GUEST_EXAMPLE_SEED.month &&
+    card.day === GUEST_EXAMPLE_SEED.day
+  );
+}
+
 export function cardDateKey(card: {
   year: number;
   month: number;

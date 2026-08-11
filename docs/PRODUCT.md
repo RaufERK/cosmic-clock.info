@@ -58,6 +58,7 @@ First visit with **no** localStorage key yet seeds **one** card:
 - Name: from i18n (`messages/*`)
 - Template lives in **code** (constant), not env; then guest edits live in localStorage
 - After sign-in sync (or deleting all guest cards), storage becomes `[]` — Summit is **not** shown again on logout on that browser
+- On register/login merge: the seed date **1958-08-07** is **never** imported into the account (demo stays guest-only). Real guest cards on other dates still merge.
 
 ### Start date rules
 

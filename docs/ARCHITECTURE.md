@@ -60,6 +60,7 @@ Guest (no session)
   └─ edit/create/delete → localStorage (with updatedAt)
 
 Register or Login
+  └─ skip guest seed date 1958-08-07 (demo never enters the account)
   └─ merge by date (newer updatedAt wins name)
   └─ keep ≤100 by updatedAt; drop rest
   └─ write localStorage `[]` (do not remove key — avoids re-seed after logout)
