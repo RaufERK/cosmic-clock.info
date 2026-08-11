@@ -424,12 +424,6 @@ export function CosmicApp() {
       </nav>
 
       <main className="relative z-10 mx-auto max-w-7xl px-8 pb-32">
-        {!isLoggedIn && ready ? (
-          <p className="mb-8 text-center text-sm text-white/40">
-            {t("guestHint")}
-          </p>
-        ) : null}
-
         {!ready ? (
           <div className="py-24 text-center text-white/30">{t("loading")}</div>
         ) : (
