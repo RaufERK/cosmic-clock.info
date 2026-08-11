@@ -30,7 +30,7 @@ Do not add a second app stack under the repo (e.g. design dumps stay out of `src
 
 ## Data model
 
-- **User** — `login`, `passwordHash`, `lastSeenAt`, timestamps  
+- **User** — `login`, `passwordHash`, `lastSeenAt`, `cardSortOrder`, timestamps  
 - **Card** — `name`, `day`/`month`/`year`, `createdAt`, `updatedAt`; `@@unique([userId, year, month, day])`  
 - Soft cap **100** cards / user (app + merge)
 
@@ -50,7 +50,7 @@ Register / Login
 
 Signed-in
   └─ Postgres only
-  └─ UI list sorted by createdAt (toggle newest/oldest)
+  └─ UI list sorted by createdAt; order preference on User.cardSortOrder
 ```
 
 ## Key paths

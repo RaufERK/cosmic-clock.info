@@ -17,6 +17,7 @@ import {
   deleteCardAction,
   listMyCardsAction,
   mergeLocalCardsAction,
+  setCardSortOrderAction,
   updateCardAction,
   type CardActionResult,
   type MergeCardsResult,
@@ -33,8 +34,10 @@ import {
   clearGuestCards,
   loadOrSeedGuestCards,
   readGuestCards,
+  readGuestSortOrder,
   removeGuestCard,
   updateGuestCard,
+  writeGuestSortOrder,
   type LocalCard,
 } from "@/lib/guest-cards";
 import {
@@ -146,6 +149,7 @@ export function CosmicApp() {
 
         if (!session?.user?.id || !session.user.login) {
           if (!cancelled) {
+            setSortOrder(readGuestSortOrder());
             setCards(loadOrSeedGuestCards(t("exampleSummit")));
             setReady(true);
           }
@@ -177,6 +181,7 @@ export function CosmicApp() {
           }
 
           clearGuestCards();
+          setSortOrder(mergeResult.sortOrder);
           setCards(mergeResult.cards);
           showToast(mergeInfoMessage(mergeResult), "success");
           setReady(true);
@@ -196,6 +201,7 @@ export function CosmicApp() {
           return;
         }
 
+        if (result.sortOrder) setSortOrder(result.sortOrder);
         setCards(result.cards ?? []);
         setReady(true);
       })();
@@ -320,6 +326,22 @@ export function CosmicApp() {
 
   function onAddClick() {
     setIsAdding(true);
+  }
+
+  function onSortToggle() {
+    const next: CardSortOrder =
+      sortOrder === "newest" ? "oldest" : "newest";
+    setSortOrder(next);
+    if (!isLoggedIn) {
+      writeGuestSortOrder(next);
+      return;
+    }
+    startCardsTransition(async () => {
+      const result = await setCardSortOrderAction(next);
+      if (!result.ok) {
+        showToast(cardErrorMessage(result), "error");
+      }
+    });
   }
 
   async function onAuthSuccess() {
@@ -592,9 +614,7 @@ export function CosmicApp() {
           {ready && cards.length > 1 ? (
             <button
               type="button"
-              onClick={() =>
-                setSortOrder((o) => (o === "newest" ? "oldest" : "newest"))
-              }
+              onClick={onSortToggle}
               title={
                 sortOrder === "newest"
                   ? t("sortNewestFirst")

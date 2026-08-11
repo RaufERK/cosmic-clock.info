@@ -7,7 +7,9 @@ import { mergeCardsByDate } from "@/lib/card-merge";
 import {
   isGuestExampleSeedDate,
   MAX_CARDS_PER_USER,
+  parseCardSortOrder,
   type CardData,
+  type CardSortOrder,
 } from "@/lib/cards";
 import { validateStartDate } from "@/lib/start-date";
 
@@ -26,6 +28,7 @@ export type MergeCardsResult =
   | {
       ok: true;
       cards: CardData[];
+      sortOrder: CardSortOrder;
       mergedDates: number;
       added: number;
       truncated: number;
@@ -36,7 +39,12 @@ export type MergeCardsResult =
     };
 
 export type CardActionResult =
-  | { ok: true; card?: CardData; cards?: CardData[] }
+  | {
+      ok: true;
+      card?: CardData;
+      cards?: CardData[];
+      sortOrder?: CardSortOrder;
+    }
   | {
       ok: false;
       error:
@@ -93,11 +101,43 @@ export async function listMyCardsAction(): Promise<CardActionResult> {
   if (!userId) return { ok: false, error: "unauthorized" };
 
   try {
-    const rows = await prisma.card.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
+    const [rows, user] = await Promise.all([
+      prisma.card.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: { cardSortOrder: true },
+      }),
+    ]);
+    return {
+      ok: true,
+      cards: rows.map(toCardData),
+      sortOrder: parseCardSortOrder(user?.cardSortOrder),
+    };
+  } catch {
+    return { ok: false, error: "unknown" };
+  }
+}
+
+export async function setCardSortOrderAction(
+  orderRaw: string,
+): Promise<CardActionResult> {
+  const userId = await requireUserId();
+  if (!userId) return { ok: false, error: "unauthorized" };
+
+  const sortOrder = parseCardSortOrder(orderRaw, "newest");
+  if (sortOrder !== orderRaw) {
+    return { ok: false, error: "invalid" };
+  }
+
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { cardSortOrder: sortOrder },
     });
-    return { ok: true, cards: rows.map(toCardData) };
+    return { ok: true, sortOrder };
   } catch {
     return { ok: false, error: "unknown" };
   }
@@ -275,16 +315,23 @@ export async function mergeLocalCardsAction(
       }
     });
 
-    const rows = await prisma.card.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
-    });
+    const [rows, user] = await Promise.all([
+      prisma.card.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: { cardSortOrder: true },
+      }),
+    ]);
 
     const added = rows.filter((r) => !beforeIds.has(r.id)).length;
 
     return {
       ok: true,
       cards: rows.map(toCardData),
+      sortOrder: parseCardSortOrder(user?.cardSortOrder),
       mergedDates,
       added,
       truncated,

@@ -16,6 +16,8 @@ model User {
   passwordHash String
   /// Last authenticated activity (register/login or throttled visit).
   lastSeenAt   DateTime @default(now())
+  /// Display sort for cards: "newest" | "oldest" (by Card.createdAt).
+  cardSortOrder String  @default("newest")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   cards        Card[]

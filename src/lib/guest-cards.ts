@@ -1,6 +1,8 @@
 import {
   GUEST_EXAMPLE_SEED,
+  parseCardSortOrder,
   type CardData,
+  type CardSortOrder,
 } from "@/lib/cards";
 import { validateStartDate } from "@/lib/start-date";
 
@@ -181,4 +183,20 @@ export function removeGuestCard(cards: LocalCard[], id: string): LocalCard[] {
   const updated = cards.filter((c) => c.id !== id);
   writeGuestCards(updated);
   return updated;
+}
+
+const SORT_STORAGE_KEY = "cosmic-clock:card-sort-order";
+
+export function readGuestSortOrder(): CardSortOrder {
+  if (typeof window === "undefined") return "newest";
+  try {
+    return parseCardSortOrder(window.localStorage.getItem(SORT_STORAGE_KEY));
+  } catch {
+    return "newest";
+  }
+}
+
+export function writeGuestSortOrder(order: CardSortOrder): void {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(SORT_STORAGE_KEY, order);
 }

@@ -10,6 +10,17 @@ export type CardData = CardFormValues & {
 
 export type CardSortOrder = "newest" | "oldest";
 
+export function isCardSortOrder(value: unknown): value is CardSortOrder {
+  return value === "newest" || value === "oldest";
+}
+
+export function parseCardSortOrder(
+  value: unknown,
+  fallback: CardSortOrder = "newest",
+): CardSortOrder {
+  return isCardSortOrder(value) ? value : fallback;
+}
+
 /** Single guest seed: The Summit Lighthouse founded 7 Aug 1958. Name from i18n. */
 export const GUEST_EXAMPLE_SEED = {
   id: "example-summit",

@@ -35,7 +35,7 @@ type Card = {
 
 - **One start date = one card** per user (DB unique + UI).
 - Max **100** / user. Merge: dedupe by date (`updatedAt` wins name) → keep 100 newest by `updatedAt`.
-- **UI order:** by **`createdAt`** (newest ↔ oldest). Edits must **not** change `createdAt` or reshuffle the list.
+- **UI order:** by **`createdAt`** (newest ↔ oldest); preference stored on the **User** (`cardSortOrder`). Guests: localStorage. Edits must **not** change `createdAt` or reshuffle the list.
 - Start date: valid civil day; not in the future.
 
 ## Guest
