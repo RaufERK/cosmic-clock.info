@@ -15,15 +15,21 @@ import {
   createCardAction,
   deleteCardAction,
   listMyCardsAction,
+  mergeLocalCardsAction,
   updateCardAction,
   type CardActionResult,
+  type MergeCardsResult,
 } from "@/lib/card-actions";
 import { touchLastSeenAction } from "@/lib/auth-actions";
+import { type CardData } from "@/lib/cards";
 import {
-  EXAMPLE_CARD_DATES,
-  type CardData,
-  isExampleCardId,
-} from "@/lib/cards";
+  addGuestCard,
+  clearGuestCards,
+  loadOrSeedGuestCards,
+  readGuestCards,
+  removeGuestCard,
+  updateGuestCard,
+} from "@/lib/guest-cards";
 import {
   civilDate,
   computeHandRotations,
@@ -57,29 +63,11 @@ export function CosmicApp() {
   const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [actionInfo, setActionInfo] = useState<string | null>(null);
 
   const userLogin = session?.user?.login ?? null;
   const isLoggedIn = Boolean(session?.user?.id);
   const sessionReady = status !== "loading";
-
-  function guestExampleCards(): CardData[] {
-    return [
-      {
-        id: EXAMPLE_CARD_DATES[0].id,
-        name: t("exampleCard1"),
-        day: EXAMPLE_CARD_DATES[0].day,
-        month: EXAMPLE_CARD_DATES[0].month,
-        year: EXAMPLE_CARD_DATES[0].year,
-      },
-      {
-        id: EXAMPLE_CARD_DATES[1].id,
-        name: t("exampleCard2"),
-        day: EXAMPLE_CARD_DATES[1].day,
-        month: EXAMPLE_CARD_DATES[1].month,
-        year: EXAMPLE_CARD_DATES[1].year,
-      },
-    ];
-  }
 
   function cardErrorMessage(result: CardActionResult): string {
     if (result.ok) return "";
@@ -92,6 +80,8 @@ export function CosmicApp() {
         return t("cardErrorNotFound");
       case "limit":
         return t("cardErrorLimit");
+      case "duplicate_date":
+        return t("cardErrorDuplicateDate");
       case "unknown":
         return t("cardErrorUnknown");
       default: {
@@ -99,6 +89,20 @@ export function CosmicApp() {
         return _exhaustive;
       }
     }
+  }
+
+  function mergeInfoMessage(result: Extract<MergeCardsResult, { ok: true }>): string {
+    const parts: string[] = [t("mergeDone")];
+    if (result.added > 0) {
+      parts.push(t("mergeAdded", { count: result.added }));
+    }
+    if (result.mergedDates > 0) {
+      parts.push(t("mergeDeduped", { count: result.mergedDates }));
+    }
+    if (result.truncated > 0) {
+      parts.push(t("mergeTruncated", { count: result.truncated }));
+    }
+    return parts.join(" ");
   }
 
   useEffect(() => {
@@ -115,16 +119,43 @@ export function CosmicApp() {
 
         if (!session?.user?.id) {
           if (!cancelled) {
-            setCards(guestExampleCards());
+            setCards(loadOrSeedGuestCards(t("exampleSummit")));
             setReady(true);
           }
           return;
         }
 
+        void touchLastSeenAction();
+
+        const local = readGuestCards();
+        if (local.length > 0) {
+          const mergeResult = await mergeLocalCardsAction(
+            local.map((c) => ({
+              name: c.name,
+              day: c.day,
+              month: c.month,
+              year: c.year,
+              updatedAt: c.updatedAt,
+            })),
+          );
+          if (cancelled) return;
+
+          if (!mergeResult.ok) {
+            setActionError(t("mergeError"));
+            setCards([]);
+            setReady(true);
+            return;
+          }
+
+          clearGuestCards();
+          setCards(mergeResult.cards);
+          setActionInfo(mergeInfoMessage(mergeResult));
+          setReady(true);
+          return;
+        }
+
         const result = await listMyCardsAction();
         if (cancelled) return;
-
-        void touchLastSeenAction();
 
         if (!result.ok) {
           setActionError(cardErrorMessage(result));
@@ -141,19 +172,34 @@ export function CosmicApp() {
     return () => {
       cancelled = true;
     };
-    // Reload when auth or locale changes (example card titles are localized).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionReady, session?.user?.id, locale]);
 
-  function requireAuth(): boolean {
-    if (isLoggedIn) return true;
-    setAuthModal("login");
-    return false;
-  }
-
   function addCard(data: CardFormValues) {
-    if (!requireAuth()) return;
     setActionError(null);
+    setActionInfo(null);
+
+    if (!isLoggedIn) {
+      const next = addGuestCard(
+        cards.map((c) => ({
+          ...c,
+          updatedAt: c.updatedAt ?? new Date().toISOString(),
+        })),
+        data,
+      );
+      if (next === "duplicate") {
+        setActionError(t("cardErrorDuplicateDate"));
+        return;
+      }
+      if (next === "invalid") {
+        setActionError(t("cardErrorInvalid"));
+        return;
+      }
+      setCards(next);
+      setIsAdding(false);
+      return;
+    }
+
     startCardsTransition(async () => {
       const result = await createCardAction(data);
       if (!result.ok) {
@@ -168,9 +214,35 @@ export function CosmicApp() {
   }
 
   function updateCard(id: string, data: CardFormValues) {
-    if (!requireAuth()) return;
-    if (isExampleCardId(id)) return;
     setActionError(null);
+    setActionInfo(null);
+
+    if (!isLoggedIn) {
+      const next = updateGuestCard(
+        cards.map((c) => ({
+          ...c,
+          updatedAt: c.updatedAt ?? new Date().toISOString(),
+        })),
+        id,
+        data,
+      );
+      if (next === "duplicate") {
+        setActionError(t("cardErrorDuplicateDate"));
+        return;
+      }
+      if (next === "invalid") {
+        setActionError(t("cardErrorInvalid"));
+        return;
+      }
+      if (next === "not_found") {
+        setActionError(t("cardErrorNotFound"));
+        return;
+      }
+      setCards(next);
+      setEditingId(null);
+      return;
+    }
+
     startCardsTransition(async () => {
       const result = await updateCardAction(id, data);
       if (!result.ok) {
@@ -187,9 +259,23 @@ export function CosmicApp() {
   }
 
   function removeCard(id: string) {
-    if (!requireAuth()) return;
-    if (isExampleCardId(id)) return;
     setActionError(null);
+    setActionInfo(null);
+
+    if (!isLoggedIn) {
+      setCards(
+        removeGuestCard(
+          cards.map((c) => ({
+            ...c,
+            updatedAt: c.updatedAt ?? new Date().toISOString(),
+          })),
+          id,
+        ),
+      );
+      setEditingId(null);
+      return;
+    }
+
     startCardsTransition(async () => {
       const result = await deleteCardAction(id);
       if (!result.ok) {
@@ -202,25 +288,22 @@ export function CosmicApp() {
   }
 
   function onSettingsClick(cardId: string) {
-    if (!isLoggedIn || isExampleCardId(cardId)) {
-      setAuthModal("login");
-      return;
-    }
     setEditingId(cardId);
   }
 
   function onAddClick() {
-    if (!requireAuth()) return;
     setIsAdding(true);
   }
 
   async function onAuthSuccess() {
-    await update();
     setAuthModal(null);
+    setActionError(null);
+    await update();
   }
 
   function onLogout() {
     startLogout(async () => {
+      setActionInfo(null);
       await signOut({ redirect: false });
     });
   }
@@ -353,6 +436,12 @@ export function CosmicApp() {
           </p>
         ) : null}
 
+        {actionInfo ? (
+          <p className="mb-6 text-center text-sm text-emerald-300/90" role="status">
+            {actionInfo}
+          </p>
+        ) : null}
+
         {!ready ? (
           <div className="py-24 text-center text-white/30">{t("loading")}</div>
         ) : (
@@ -375,7 +464,7 @@ export function CosmicApp() {
                   exit={{ opacity: 0, scale: 0.9 }}
                   className="group relative h-[580px]"
                 >
-                  {editingId === card.id && isLoggedIn ? (
+                  {editingId === card.id ? (
                     <CardForm
                       initialData={card}
                       onSave={(data) => updateCard(card.id, data)}
@@ -443,7 +532,7 @@ export function CosmicApp() {
               })}
 
               <motion.div layout className="h-[580px]">
-                {isAdding && isLoggedIn ? (
+                {isAdding ? (
                   <CardForm
                     onSave={addCard}
                     onCancel={() => setIsAdding(false)}

@@ -35,5 +35,6 @@ model Card {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([userId, year, month, day])
   @@index([userId])
 }

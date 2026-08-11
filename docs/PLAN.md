@@ -252,7 +252,7 @@ i18n: agent writes **en / ru / es / pt** for these short messages at implementat
 - [ ] No SMTP / mail code anywhere
 
 **Commit when:** auth doctrine matches docs.  
-**Status:** implemented — awaiting verify + commit.
+**Status:** done (committed).
 
 ---
 
@@ -260,13 +260,13 @@ i18n: agent writes **en / ru / es / pt** for these short messages at implementat
 
 **Goal:** guests use cards in localStorage; account syncs; one date = one card.
 
-- [ ] Seed **one** example into localStorage when empty: **1958-08-07** + i18n name; allow edit/delete/create
-- [ ] Guest CRUD persists in localStorage (`updatedAt` on each card)
-- [ ] DB: `UNIQUE (userId, year, month, day)`
-- [ ] Create/edit: block duplicate dates with clear message (4 locales)
-- [ ] On **register** / **login**: merge by date (newer `updatedAt` wins name) → truncate to 100 by `updatedAt` → clear localStorage → summary message
-- [ ] Signed-in path: Postgres only
-- [ ] Loading / error states for migrate
+- [x] Seed **one** example into localStorage when empty: **1958-08-07** + i18n name; allow edit/delete/create
+- [x] Guest CRUD persists in localStorage (`updatedAt` on each card)
+- [x] DB: `UNIQUE (userId, year, month, day)`
+- [x] Create/edit: block duplicate dates with clear message (4 locales)
+- [x] On **register** / **login**: merge by date (newer `updatedAt` wins name) → truncate to 100 by `updatedAt` → clear localStorage → summary message
+- [x] Signed-in path: Postgres only
+- [x] Loading / error states for migrate
 
 **You check**
 
@@ -275,7 +275,8 @@ i18n: agent writes **en / ru / es / pt** for these short messages at implementat
 - [ ] Register/login merge + messages; localStorage cleared
 - [ ] Second device (logged in) sees DB cards only
 
-**Commit when:** guest→account flow verified.
+**Commit when:** guest→account flow verified.  
+**Status:** implemented — awaiting verify + commit.
 
 ---
 
@@ -308,9 +309,9 @@ i18n: agent writes **en / ru / es / pt** for these short messages at implementat
 
 ## Current position
 
-**Done:** Stage A–G.  
-**In progress:** **Stage H** — implemented; verify then commit.
+**Done:** Stage A–H.  
+**In progress:** **Stage I** — implemented; verify then commit.
 
-**Next after H:** **I** (guest localStorage + merge) → **J** (deploy).
+**Next after I:** **J** (server deploy + prune on deploy) when you want.
 
-Say when H is OK to commit / when to start I.
+Smoke-test H+I together (login, change password, guest localStorage, merge).

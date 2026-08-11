@@ -85,13 +85,18 @@
     "authErrorWrongPassword": "La contraseña actual es incorrecta.",
     "authErrorUnauthorized": "Inicia sesión de nuevo.",
     "authErrorUnknown": "Algo salió mal. Inténtalo de nuevo.",
-    "exampleCard1": "Carta personal",
-    "exampleCard2": "Tránsitos 2026",
-    "guestHint": "Cartas de ejemplo para invitados. Inicia sesión para crear y guardar las tuyas.",
+    "exampleSummit": "The Summit Lighthouse",
+    "guestHint": "Tus calendarios se guardan en este dispositivo. Inicia sesión para sincronizarlos entre dispositivos.",
     "cardErrorUnauthorized": "Inicia sesión para gestionar cartas.",
     "cardErrorInvalid": "Revisa el nombre y la fecha de la carta.",
     "cardErrorNotFound": "Carta no encontrada.",
     "cardErrorLimit": "Puedes tener como máximo 100 cartas.",
-    "cardErrorUnknown": "No se pudo guardar la carta. Inténtalo de nuevo."
+    "cardErrorDuplicateDate": "Ya existe un calendario con esta fecha.",
+    "cardErrorUnknown": "No se pudo guardar la carta. Inténtalo de nuevo.",
+    "mergeDone": "Calendarios sincronizados con tu cuenta.",
+    "mergeAdded": "{count, plural, one {# calendario añadido.} other {# calendarios añadidos.}}",
+    "mergeDeduped": "{count, plural, one {# fecha duplicada fusionada.} other {# fechas duplicadas fusionadas.}}",
+    "mergeTruncated": "{count, plural, one {Se descartó # calendario por encima del límite.} other {Se descartaron # calendarios por encima del límite.}}",
+    "mergeError": "No se pudieron sincronizar los calendarios locales. Vuelve a iniciar sesión."
   }
 }

@@ -51,9 +51,10 @@
 | Prisma `User` / `Card` + local migrate | Done |
 | Auth.js register / login / logout | Done (**login** + password; Stage H) |
 | Card CRUD in Postgres (signed-in) | Done |
-| Guest localStorage + migrate/merge | Planned Stage I |
+| Guest localStorage + migrate/merge | Done (Stage I) |
 | Login (not email) + change password | Done (Stage H) |
 | Start-date doctrine (`year >= 0`, ≤ today) | Done (Stage G) |
+| Unique start date per user | Done (Stage I) |
 | Server deploy | Planned Stage J |
 
 Living detail: [`docs/PLAN.md`](PLAN.md).
