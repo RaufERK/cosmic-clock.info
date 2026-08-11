@@ -58,11 +58,12 @@ type Card = {
 
 ### Guest example
 
-First visit with empty localStorage seeds **one** card:
+First visit with **no** localStorage key yet seeds **one** card:
 
 - Date: **7 August 1958** (The Summit Lighthouse founded)
 - Name: from i18n (`messages/*`)
 - Template lives in **code** (constant), not env; then guest edits live in localStorage
+- After sign-in sync (or deleting all guest cards), storage becomes `[]` — Summit is **not** shown again on logout on that browser
 
 ### Start date rules
 

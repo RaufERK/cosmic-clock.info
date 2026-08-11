@@ -55,7 +55,7 @@ No OAuth (Google etc.) in v1 unless we add it later on purpose.
 
 | Who | Where | Behavior |
 |-----|--------|----------|
-| First visit (guest) | **localStorage** | Seed **one** example if storage empty (code constant, not env). Guest may edit/delete/create — all in localStorage |
+| First visit (guest) | **localStorage** | Seed **one** example only if the storage key is **missing**. Guest may edit/delete/create. After login/merge (or delete-all), storage is `[]` — **no re-seed** on logout |
 | Example card | Hardcoded | Start date **1958-08-07** (The Summit Lighthouse founded); localized name in `messages/*` |
 | Signed-in | **Postgres** | Source of truth; multi-device |
 | Register / login | migrate + merge | Import local → DB (merge with existing on login) → **clear** localStorage → show summary message |

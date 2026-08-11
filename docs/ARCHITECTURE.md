@@ -74,13 +74,14 @@ No separate “Calendar” entity — **Card** is the unit.
 
 ```
 Guest (no session)
-  └─ if localStorage empty → seed one card (1958-08-07) from code constant
+  └─ if localStorage key missing → seed one card (1958-08-07) from code constant
   └─ edit/create/delete → localStorage (with updatedAt)
 
 Register or Login
   └─ merge by date (newer updatedAt wins name)
   └─ keep ≤100 by updatedAt; drop rest
-  └─ clear localStorage; show summary message
+  └─ write localStorage `[]` (do not remove key — avoids re-seed after logout)
+  └─ show summary message
 
 Signed-in
   └─ Postgres only (multi-device)

@@ -50,12 +50,18 @@ export function writeGuestCards(cards: LocalCard[]): void {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
 }
 
+/**
+ * After sync (or any signed-in visit): keep an empty list in storage.
+ * Do NOT remove the key — otherwise logout looks like a first visit and re-seeds Summit.
+ */
 export function clearGuestCards(): void {
-  if (typeof window === "undefined") return;
-  window.localStorage.removeItem(STORAGE_KEY);
+  writeGuestCards([]);
 }
 
-/** First visit only: seed Summit example. Empty array after user deletes is kept. */
+/**
+ * First visit only (no storage key yet): seed Summit example.
+ * Empty array `[]` means the user already used this device as guest / signed in — no re-seed.
+ */
 export function loadOrSeedGuestCards(exampleName: string): LocalCard[] {
   if (hasGuestStorage()) {
     return readGuestCards();

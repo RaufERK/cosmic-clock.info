@@ -5,7 +5,7 @@
   },
   "app": {
     "title": "Relojes Cósmicos",
-    "addCard": "Agregar carta",
+    "addCard": "Añadir reloj",
     "login": "Entrar",
     "register": "Registrarse",
     "logout": "Salir",

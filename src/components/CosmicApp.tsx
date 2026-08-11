@@ -161,6 +161,9 @@ export function CosmicApp() {
           return;
         }
 
+        // Mark this browser as non-first-visit even if there was nothing to merge.
+        clearGuestCards();
+
         const result = await listMyCardsAction();
         if (cancelled) return;
 

@@ -5,7 +5,7 @@
   },
   "app": {
     "title": "Cosmic Clocks",
-    "addCard": "Add Card",
+    "addCard": "Add clock",
     "login": "Login",
     "register": "Register",
     "logout": "Log out",
