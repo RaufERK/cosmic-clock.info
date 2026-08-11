@@ -276,7 +276,7 @@ i18n: agent writes **en / ru / es / pt** for these short messages at implementat
 - [ ] Second device (logged in) sees DB cards only
 
 **Commit when:** guest→account flow verified.  
-**Status:** implemented — awaiting verify + commit.
+**Status:** done (committed).
 
 ---
 
@@ -309,9 +309,7 @@ i18n: agent writes **en / ru / es / pt** for these short messages at implementat
 
 ## Current position
 
-**Done:** Stage A–H.  
-**In progress:** **Stage I** — implemented; verify then commit.
+**Done:** Stage A–I.  
+**Next:** **J** — server DB + deploy + prune (when you want).
 
-**Next after I:** **J** (server deploy + prune on deploy) when you want.
-
-Smoke-test H+I together (login, change password, guest localStorage, merge).
+Smoke-test locally: guest Summit card, duplicate date blocked, register/login merge, change password.
