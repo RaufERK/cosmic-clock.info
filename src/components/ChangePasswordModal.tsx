@@ -41,6 +41,8 @@ export function ChangePasswordModal({ login, onClose }: Props) {
         return t("authErrorWrongPassword");
       case "unauthorized":
         return t("authErrorUnauthorized");
+      case "rate_limited":
+        return t("authErrorRateLimited");
       case "unknown":
         return t("authErrorUnknown");
       default: {

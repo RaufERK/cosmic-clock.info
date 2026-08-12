@@ -1,9 +1,14 @@
 "use server";
 
 import { AuthError } from "next-auth";
+import { headers } from "next/headers";
 import { auth, signIn } from "@/auth";
 import { prisma } from "@/lib/db";
 import { hashPassword, verifyPassword } from "@/lib/password";
+import {
+  clearAuthAttempts,
+  consumeAuthAttempt,
+} from "@/lib/auth-rate-limit";
 import {
   isValidLoginFormat,
   normalizeLogin,
@@ -21,6 +26,7 @@ export type AuthActionResult =
         | "weak"
         | "wrong_password"
         | "unauthorized"
+        | "rate_limited"
         | "unknown";
     };
 
@@ -44,6 +50,36 @@ function isCredentialsFailure(error: unknown): boolean {
   );
 }
 
+async function clientIp(): Promise<string> {
+  const h = await headers();
+  const forwarded = h.get("x-forwarded-for");
+  if (forwarded) {
+    const first = forwarded.split(",")[0]?.trim();
+    if (first) return first;
+  }
+  const real = h.get("x-real-ip")?.trim();
+  if (real) return real;
+  return "unknown";
+}
+
+function authRateKey(ip: string): string {
+  return `auth:${ip}`;
+}
+
+async function guardAuthRateLimit(): Promise<AuthActionResult | null> {
+  const ip = await clientIp();
+  const limited = consumeAuthAttempt(authRateKey(ip));
+  if (!limited.ok) {
+    return { ok: false, error: "rate_limited" };
+  }
+  return null;
+}
+
+async function clearAuthRateLimit(): Promise<void> {
+  const ip = await clientIp();
+  clearAuthAttempts(authRateKey(ip));
+}
+
 async function signInCredentials(
   login: string,
   password: string,
@@ -54,9 +90,11 @@ async function signInCredentials(
       password,
       redirect: false,
     });
+    await clearAuthRateLimit();
     return { ok: true };
   } catch (error) {
     if (isNextRedirect(error)) {
+      await clearAuthRateLimit();
       return { ok: true };
     }
     if (isCredentialsFailure(error)) {
@@ -72,6 +110,9 @@ export async function registerAction(
   password: string,
   confirmPassword: string,
 ): Promise<AuthActionResult> {
+  const blocked = await guardAuthRateLimit();
+  if (blocked) return blocked;
+
   const login = normalizeLogin(loginRaw);
 
   if (!isValidLoginFormat(login) || !password) {
@@ -102,6 +143,9 @@ export async function loginAction(
   loginRaw: string,
   password: string,
 ): Promise<AuthActionResult> {
+  const blocked = await guardAuthRateLimit();
+  if (blocked) return blocked;
+
   const login = normalizeLogin(loginRaw);
   if (!isValidLoginFormat(login) || !password) {
     return { ok: false, error: "invalid" };

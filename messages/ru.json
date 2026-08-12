@@ -107,6 +107,7 @@
     "authErrorWeak": "Пароль должен быть не короче 6 символов.",
     "authErrorWrongPassword": "Текущий пароль неверен.",
     "authErrorUnauthorized": "Войдите снова.",
+    "authErrorRateLimited": "Слишком много попыток. Подождите несколько минут и попробуйте снова.",
     "authErrorUnknown": "Что-то пошло не так. Попробуйте ещё раз.",
     "exampleSummit": "The Summit Lighthouse",
     "guestHint": "Календари сохраняются на этом устройстве. Войдите, чтобы синхронизировать их между устройствами.",

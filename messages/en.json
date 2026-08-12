@@ -107,6 +107,7 @@
     "authErrorWeak": "Password must be at least 6 characters.",
     "authErrorWrongPassword": "Current password is incorrect.",
     "authErrorUnauthorized": "Please sign in again.",
+    "authErrorRateLimited": "Too many attempts. Wait a few minutes and try again.",
     "authErrorUnknown": "Something went wrong. Try again.",
     "exampleSummit": "The Summit Lighthouse",
     "guestHint": "Your calendars are saved on this device. Sign in to sync them across devices.",

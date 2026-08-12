@@ -107,6 +107,7 @@
     "authErrorWeak": "La contraseña debe tener al menos 6 caracteres.",
     "authErrorWrongPassword": "La contraseña actual es incorrecta.",
     "authErrorUnauthorized": "Inicia sesión de nuevo.",
+    "authErrorRateLimited": "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.",
     "authErrorUnknown": "Algo salió mal. Inténtalo de nuevo.",
     "exampleSummit": "The Summit Lighthouse",
     "guestHint": "Tus calendarios se guardan en este dispositivo. Inicia sesión para sincronizarlos entre dispositivos.",

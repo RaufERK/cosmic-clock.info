@@ -43,6 +43,8 @@ export function AuthModal({ mode: initialMode, onClose, onSuccess }: Props) {
         return t("authErrorWrongPassword");
       case "unauthorized":
         return t("authErrorUnauthorized");
+      case "rate_limited":
+        return t("authErrorRateLimited");
       case "unknown":
         return t("authErrorUnknown");
       default: {

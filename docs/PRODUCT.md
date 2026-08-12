@@ -14,6 +14,7 @@ Live: [cosmic-clock.info](https://cosmic-clock.info). Figma: [CCLOCK](https://ww
 
 - Identifier: **login** (username, not email) + password.
 - Session ~30d (Auth.js JWT). No SMTP / email verification / password-reset mail.
+- Login/register: ~**10 attempts / 10 min per IP** (in-memory; resets on process restart).
 - Forgotten password → new account + re-enter cards.
 - Signed-in: click own login → change password.
 - `lastSeenAt` on auth + ≤1×/day while using; idle **2+ years** pruned on deploy.
