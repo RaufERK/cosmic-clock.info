@@ -46,3 +46,15 @@ npm run db:migrate
 | Dashboard | `https://stats.cosmic-clock.info` |
 
 Separate PG DB/role **`umami`**. Site needs `NEXT_PUBLIC_UMAMI_WEBSITE_ID` + `NEXT_PUBLIC_UMAMI_SCRIPT_URL=/ua.js`.
+
+## Sentry (errors + tracing)
+
+In `shared/.env` (and local `.env`):
+
+```text
+NEXT_PUBLIC_SENTRY_DSN=https://…@….ingest.de.sentry.io/…
+SENTRY_DSN=https://…@….ingest.de.sentry.io/…
+```
+
+Optional source maps on build: `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`.  
+Tunnel: `/monitoring` (excluded from locale proxy). Local verify: `ALLOW_SENTRY_TEST=1` then `GET /api/sentry-test`.
