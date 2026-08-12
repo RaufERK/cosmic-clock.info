@@ -19,6 +19,7 @@ npm i
 docker compose up -d          # Postgres on :5433
 cp .env.example .env          # if needed
 npm run db:migrate
+npm test                      # unit tests (math, merge, dates)
 npm run dev                   # http://localhost:3000/en
 ```
 
