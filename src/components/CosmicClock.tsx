@@ -20,7 +20,7 @@ export type CosmicClockProps = {
 };
 
 const HOURS = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] as const;
-const SECTOR_COLORS = ["#2d5f96", "#8c2855", "#7a5f10"] as const;
+const SECTOR_COLORS = ["#2d5f96", "#8c2855", "#8f7216"] as const;
 
 export function CosmicClock({
   day,
@@ -211,40 +211,54 @@ export function CosmicClock({
         })}
       </svg>
 
-      {/* Year hand — thick / short */}
-      <motion.div
-        initial={{ rotate: 0 }}
-        animate={{ rotate: hourRotation }}
-        transition={{ duration: 1.5, ease: "easeOut" }}
-        className="absolute origin-bottom bottom-1/2 rounded-full bg-blue-400"
+      <div
+        className="pointer-events-none absolute inset-0 flex items-center justify-center"
         style={{
-          width: "20px",
-          height: `${size * 0.28}px`,
-          boxShadow: "0 0 10px rgba(96,165,250,0.65)",
+          filter:
+            "drop-shadow(1px 2px 2px rgba(0,0,0,0.55)) drop-shadow(0 1px 1px rgba(0,0,0,0.4))",
         }}
-      />
+      >
+        {/* Year hand — thick / short */}
+        <motion.div
+          initial={{ rotate: 0 }}
+          animate={{ rotate: hourRotation }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+          className="absolute origin-bottom bottom-1/2 rounded-full bg-blue-400"
+          style={{
+            width: "20px",
+            height: `${size * 0.28}px`,
+            boxShadow: "0 0 10px rgba(96,165,250,0.65)",
+          }}
+        />
+        {/* Month hand — medium */}
+        <motion.div
+          initial={{ rotate: 0 }}
+          animate={{ rotate: minuteRotation }}
+          transition={{ duration: 2, ease: "easeOut" }}
+          className="absolute origin-bottom bottom-1/2 rounded-full bg-purple-400"
+          style={{
+            width: "11px",
+            height: `${size * 0.35}px`,
+            boxShadow: "0 0 8px rgba(192,132,252,0.6)",
+          }}
+        />
+      </div>
 
-      {/* Month hand — medium */}
-      <motion.div
-        initial={{ rotate: 0 }}
-        animate={{ rotate: minuteRotation }}
-        transition={{ duration: 2, ease: "easeOut" }}
-        className="absolute origin-bottom bottom-1/2 rounded-full bg-purple-400"
+      <div
+        className="pointer-events-none absolute inset-0 flex items-center justify-center"
         style={{
-          width: "11px",
-          height: `${size * 0.35}px`,
-          boxShadow: "0 0 8px rgba(192,132,252,0.6)",
+          filter: "drop-shadow(0 0.5px 0.4px rgba(0,0,0,0.28))",
         }}
-      />
-
-      {/* Day hand — thin dark ruby */}
-      <motion.div
-        initial={{ rotate: 0 }}
-        animate={{ rotate: secondRotation }}
-        transition={{ duration: 2.5, ease: "easeOut" }}
-        className="absolute origin-bottom bottom-1/2 rounded-full bg-rose-900"
-        style={{ width: "2px", height: `${size * 0.4}px` }}
-      />
+      >
+        {/* Day hand — thin dark ruby */}
+        <motion.div
+          initial={{ rotate: 0 }}
+          animate={{ rotate: secondRotation }}
+          transition={{ duration: 2.5, ease: "easeOut" }}
+          className="absolute origin-bottom bottom-1/2 rounded-full bg-rose-900"
+          style={{ width: "2px", height: `${size * 0.4}px` }}
+        />
+      </div>
 
       <div
         className="absolute z-10 rounded-full border-2 border-blue-500 bg-white"
