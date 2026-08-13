@@ -688,7 +688,7 @@ export function CosmicApp() {
 
       {!ready ? (
         <div className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center">
-          <CosmicSpinner size={264} label={t("loading")} showLabel />
+          <CosmicSpinner size={132} label={t("loading")} showLabel />
         </div>
       ) : null}
 

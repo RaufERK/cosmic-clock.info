@@ -37,32 +37,23 @@ body {
 }
 
 @keyframes cosmic-spinner-spin {
+  from {
+    transform: rotate(-90deg);
+  }
   to {
-    transform: rotate(360deg);
+    transform: rotate(270deg);
   }
 }
 
-.cosmic-spinner-hand {
+.cosmic-spinner-arc {
   transform-box: view-box;
   transform-origin: 50% 50%;
-}
-
-.cosmic-spinner-hand-year {
-  animation: cosmic-spinner-spin 8s linear infinite;
-}
-
-.cosmic-spinner-hand-month {
-  animation: cosmic-spinner-spin 3.2s linear infinite;
-}
-
-.cosmic-spinner-hand-day {
-  animation: cosmic-spinner-spin 1.1s linear infinite;
+  animation: cosmic-spinner-spin 0.95s linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cosmic-spinner-hand-year,
-  .cosmic-spinner-hand-month,
-  .cosmic-spinner-hand-day {
+  .cosmic-spinner-arc {
     animation: none;
+    transform: rotate(-90deg);
   }
 }
