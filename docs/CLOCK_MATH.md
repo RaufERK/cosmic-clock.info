@@ -9,7 +9,7 @@ Not planetary astrology; **no ephemeris**. Hands = stage from **start date** →
 |------|-------------------|-----|
 | Year | **12 years** (1 year → next hour) | Blue, thick/short |
 | Month | **1 year** (1 month → next hour) | Purple, medium |
-| Day | **1 month** (continuous in month-segment) | Thin indigo |
+| Day | **1 month** (continuous in month-segment) | Thin dark ruby (`bg-rose-900`), slightly longer than the month hand |
 
 Dial: **12 × 30°**. At start date all hands at **12** (0°), then advance with elapsed time.
 

@@ -237,13 +237,13 @@ export function CosmicClock({
         }}
       />
 
-      {/* Day hand — thin */}
+      {/* Day hand — thin dark ruby */}
       <motion.div
         initial={{ rotate: 0 }}
         animate={{ rotate: secondRotation }}
         transition={{ duration: 2.5, ease: "easeOut" }}
-        className="absolute origin-bottom bottom-1/2 rounded-full bg-indigo-400/70"
-        style={{ width: "2px", height: `${size * 0.35}px` }}
+        className="absolute origin-bottom bottom-1/2 rounded-full bg-rose-900"
+        style={{ width: "2px", height: `${size * 0.4}px` }}
       />
 
       <div

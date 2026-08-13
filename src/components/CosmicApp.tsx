@@ -2,7 +2,16 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowDown, ChevronDown, LogOut, Plus, Settings } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Lock,
+  LockOpen,
+  LogOut,
+  Plus,
+  Settings,
+} from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useLocale, useTranslations } from "next-intl";
 import { AuthModal } from "@/components/AuthModal";
@@ -17,7 +26,7 @@ import {
   deleteCardAction,
   listMyCardsAction,
   mergeLocalCardsAction,
-  setCardSortOrderAction,
+  reorderCardsAction,
   updateCardAction,
   type CardActionResult,
   type MergeCardsResult,
@@ -25,19 +34,19 @@ import {
 import { touchLastSeenAction } from "@/lib/auth-actions";
 import {
   type CardData,
-  type CardSortOrder,
   isGuestExampleSeedDate,
-  sortCardsByCreatedAt,
+  moveCardInList,
+  sortCardsBySortIndex,
+  withDenseSortIndex,
 } from "@/lib/cards";
 import {
   addGuestCard,
   clearGuestCards,
   loadOrSeedGuestCards,
   readGuestCards,
-  readGuestSortOrder,
   removeGuestCard,
+  reorderGuestCards,
   updateGuestCard,
-  writeGuestSortOrder,
   type LocalCard,
 } from "@/lib/guest-cards";
 import {
@@ -72,7 +81,8 @@ export function CosmicApp() {
   const [ready, setReady] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
-  const [sortOrder, setSortOrder] = useState<CardSortOrder>("newest");
+  const [isDragMode, setIsDragMode] = useState(false);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [toast, setToast] = useState<ToastMessage | null>(null);
@@ -87,6 +97,7 @@ export function CosmicApp() {
     const stamped = new Date().toISOString();
     return list.map((c) => ({
       ...c,
+      sortIndex: c.sortIndex,
       createdAt: c.createdAt ?? c.updatedAt ?? stamped,
       updatedAt: c.updatedAt ?? c.createdAt ?? stamped,
     }));
@@ -145,11 +156,11 @@ export function CosmicApp() {
       void (async () => {
         setEditingId(null);
         setIsAdding(false);
+        setIsDragMode(false);
         setReady(false);
 
         if (!session?.user?.id || !session.user.login) {
           if (!cancelled) {
-            setSortOrder(readGuestSortOrder());
             setCards(loadOrSeedGuestCards(t("exampleSummit")));
             setReady(true);
           }
@@ -181,7 +192,6 @@ export function CosmicApp() {
           }
 
           clearGuestCards();
-          setSortOrder(mergeResult.sortOrder);
           setCards(mergeResult.cards);
           showToast(mergeInfoMessage(mergeResult), "success");
           setReady(true);
@@ -201,7 +211,6 @@ export function CosmicApp() {
           return;
         }
 
-        if (result.sortOrder) setSortOrder(result.sortOrder);
         setCards(result.cards ?? []);
         setReady(true);
       })();
@@ -212,6 +221,24 @@ export function CosmicApp() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionReady, session?.user?.id, locale]);
+
+  useEffect(() => {
+    if (!isDragMode) return;
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsDragMode(false);
+        setDragIndex(null);
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isDragMode]);
+
+  useEffect(() => {
+    if (cards.length > 1 || !isDragMode) return;
+    setIsDragMode(false);
+    setDragIndex(null);
+  }, [cards.length, isDragMode]);
 
   useEffect(() => {
     if (!langMenuOpen) return;
@@ -294,6 +321,7 @@ export function CosmicApp() {
             return {
               ...result.card!,
               createdAt: result.card!.createdAt ?? card.createdAt,
+              sortIndex: result.card!.sortIndex ?? card.sortIndex,
             };
           }),
         );
@@ -321,26 +349,44 @@ export function CosmicApp() {
   }
 
   function onSettingsClick(cardId: string) {
+    if (isDragMode) return;
     setEditingId(cardId);
   }
 
   function onAddClick() {
+    if (isDragMode) return;
     setIsAdding(true);
   }
 
-  function onSortToggle() {
-    const next: CardSortOrder =
-      sortOrder === "newest" ? "oldest" : "newest";
-    setSortOrder(next);
+  function toggleDragMode() {
+    setIsDragMode((open) => !open);
+    setDragIndex(null);
+    setEditingId(null);
+    setIsAdding(false);
+  }
+
+  function moveCard(from: number, to: number) {
+    const ordered = sortCardsBySortIndex(cards);
+    const moved = withDenseSortIndex(moveCardInList(ordered, from, to));
+    if (moved.length === 0 || moved.every((card, i) => card.id === ordered[i]?.id)) {
+      return;
+    }
+    setCards(moved);
+    const orderedIds = moved.map((card) => card.id);
     if (!isLoggedIn) {
-      writeGuestSortOrder(next);
+      const result = reorderGuestCards(toLocalCards(moved), orderedIds);
+      if (result === "invalid") {
+        showToast(t("cardErrorUnknown"), "error");
+      }
       return;
     }
     startCardsTransition(async () => {
-      const result = await setCardSortOrderAction(next);
+      const result = await reorderCardsAction(orderedIds);
       if (!result.ok) {
         showToast(cardErrorMessage(result), "error");
+        return;
       }
+      if (result.cards) setCards(result.cards);
     });
   }
 
@@ -614,27 +660,21 @@ export function CosmicApp() {
           {ready && cards.length > 1 ? (
             <button
               type="button"
-              onClick={onSortToggle}
-              title={
-                sortOrder === "newest"
-                  ? t("sortNewestFirst")
-                  : t("sortOldestFirst")
-              }
-              aria-label={
-                sortOrder === "newest"
-                  ? t("sortNewestFirst")
-                  : t("sortOldestFirst")
-              }
-              className="flex-shrink-0 rounded-xl border border-white/20 bg-white/5 p-2.5 text-white/40 transition-all hover:border-blue-400/40 hover:bg-blue-500/10 hover:text-blue-300"
+              onClick={toggleDragMode}
+              title={isDragMode ? t("reorderLock") : t("reorderUnlock")}
+              aria-label={isDragMode ? t("reorderLock") : t("reorderUnlock")}
+              aria-pressed={isDragMode}
+              className={`flex-shrink-0 rounded-xl border p-2.5 transition-all ${
+                isDragMode
+                  ? "border-amber-400/50 bg-amber-400/10 text-amber-300 hover:bg-amber-400/20"
+                  : "border-white/20 bg-white/5 text-white/40 hover:bg-white/10 hover:text-white/60"
+              }`}
             >
-              <ArrowDown
-                className="h-4 w-4 transition-transform duration-300"
-                style={{
-                  transform:
-                    sortOrder === "newest" ? "rotate(0deg)" : "rotate(180deg)",
-                }}
-                aria-hidden
-              />
+              {isDragMode ? (
+                <LockOpen className="h-4 w-4" aria-hidden />
+              ) : (
+                <Lock className="h-4 w-4" aria-hidden />
+              )}
             </button>
           ) : null}
           <div className="h-px flex-1 bg-white/10" />
@@ -651,7 +691,7 @@ export function CosmicApp() {
             }`}
           >
             <AnimatePresence mode="popLayout">
-              {sortCardsByCreatedAt(cards, sortOrder).map((card) => {
+              {sortCardsBySortIndex(cards).map((card, idx) => {
                 const hands = computeHandRotations(
                   civilDate(card.year, card.month, card.day),
                 );
@@ -662,6 +702,15 @@ export function CosmicApp() {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
+                  draggable={isDragMode}
+                  onDragStart={() => setDragIndex(idx)}
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={() => {
+                    if (dragIndex !== null && dragIndex !== idx) {
+                      moveCard(dragIndex, idx);
+                    }
+                    setDragIndex(null);
+                  }}
                   className="group relative h-[580px]"
                 >
                   {editingId === card.id ? (
@@ -672,7 +721,13 @@ export function CosmicApp() {
                       onDelete={() => removeCard(card.id)}
                     />
                   ) : (
-                    <motion.div className="relative flex h-full w-full flex-col items-center rounded-[2.5rem] border border-indigo-400/20 bg-indigo-950/80 p-8 shadow-2xl shadow-indigo-950 backdrop-blur-2xl transition-all duration-500 group-hover:border-indigo-400/35 group-hover:bg-indigo-950/90">
+                    <motion.div
+                      className={`relative flex h-full w-full flex-col items-center rounded-[2.5rem] border border-indigo-400/20 bg-indigo-950/80 p-8 shadow-2xl shadow-indigo-950 backdrop-blur-2xl transition-all duration-500 ${
+                        isDragMode
+                          ? "cursor-grab active:cursor-grabbing"
+                          : "group-hover:border-indigo-400/35 group-hover:bg-indigo-950/90"
+                      }`}
+                    >
                       <div className="flex min-h-[3rem] w-full flex-col items-center justify-center text-center">
                         <h3 className="line-clamp-2 text-2xl leading-tight font-black tracking-tight text-white/90 transition-colors group-hover:text-white">
                           {card.name}
@@ -717,22 +772,45 @@ export function CosmicApp() {
                             </p>
                           </div>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => onSettingsClick(card.id)}
-                          className="rounded-xl border border-white/5 bg-white/5 p-2.5 text-white/25 transition-all hover:border-blue-500/30 hover:bg-blue-500/15 hover:text-blue-400"
-                        >
-                          <Settings className="h-5 w-5" />
-                        </button>
+                        {!isDragMode ? (
+                          <button
+                            type="button"
+                            onClick={() => onSettingsClick(card.id)}
+                            className="rounded-xl border border-white/5 bg-white/5 p-2.5 text-white/25 transition-all hover:border-blue-500/30 hover:bg-blue-500/15 hover:text-blue-400"
+                          >
+                            <Settings className="h-5 w-5" />
+                          </button>
+                        ) : null}
                       </div>
                     </motion.div>
                   )}
+
+                  {isDragMode && editingId !== card.id ? (
+                    <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-between rounded-[2.5rem] bg-indigo-950/15 px-4 backdrop-blur-[1px]">
+                      <button
+                        type="button"
+                        onClick={() => moveCard(idx, idx - 1)}
+                        disabled={idx === 0}
+                        className="pointer-events-auto rounded-2xl bg-white/15 p-4 text-white/60 transition-all hover:bg-white/25 hover:text-white disabled:opacity-0"
+                      >
+                        <ChevronLeft className="h-12 w-12" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveCard(idx, idx + 1)}
+                        disabled={idx === cards.length - 1}
+                        className="pointer-events-auto rounded-2xl bg-white/15 p-4 text-white/60 transition-all hover:bg-white/25 hover:text-white disabled:opacity-0"
+                      >
+                        <ChevronRight className="h-12 w-12" />
+                      </button>
+                    </div>
+                  ) : null}
                 </motion.div>
                 );
               })}
 
-              <motion.div layout className="h-[580px]">
-                {isAdding ? (
+              <motion.div layout className="relative h-[580px]">
+                {isAdding && !isDragMode ? (
                   <CardForm
                     onSave={addCard}
                     onCancel={() => setIsAdding(false)}
@@ -742,16 +820,33 @@ export function CosmicApp() {
                   <button
                     type="button"
                     onClick={onAddClick}
-                    className="group flex h-full w-full flex-col items-center justify-center gap-6 rounded-[2.5rem] border border-dashed border-indigo-400/30 bg-indigo-950/40 text-indigo-300/60 backdrop-blur-sm transition-all duration-500 hover:border-indigo-400/60 hover:bg-indigo-900/50 hover:text-indigo-200"
+                    className={`flex h-full w-full flex-col items-center justify-center gap-6 rounded-[2.5rem] border border-dashed border-indigo-400/30 bg-indigo-950/40 text-indigo-300/60 backdrop-blur-sm transition-all duration-500 ${
+                      isDragMode
+                        ? "cursor-default"
+                        : "group hover:border-indigo-400/60 hover:bg-indigo-900/50 hover:text-indigo-200"
+                    }`}
                   >
-                    <div className="rounded-full border border-indigo-400/25 bg-indigo-500/10 p-7 transition-all duration-500 group-hover:scale-110 group-hover:border-indigo-400/50 group-hover:bg-indigo-500/20">
+                    <div
+                      className={`rounded-full border border-indigo-400/25 bg-indigo-500/10 p-7 transition-all duration-500 ${
+                        isDragMode
+                          ? ""
+                          : "group-hover:scale-110 group-hover:border-indigo-400/50 group-hover:bg-indigo-500/20"
+                      }`}
+                    >
                       <Plus className="h-10 w-10" />
                     </div>
-                    <span className="text-base font-bold tracking-[0.25em] text-indigo-300/80 uppercase transition-colors group-hover:text-indigo-100">
+                    <span
+                      className={`text-base font-bold tracking-[0.25em] text-indigo-300/80 uppercase transition-colors ${
+                        isDragMode ? "" : "group-hover:text-indigo-100"
+                      }`}
+                    >
                       {t("addCard")}
                     </span>
                   </button>
                 )}
+                {isDragMode ? (
+                  <div className="pointer-events-none absolute inset-0 rounded-[2.5rem] bg-indigo-950/15 backdrop-blur-[1px]" />
+                ) : null}
               </motion.div>
             </AnimatePresence>
           </div>

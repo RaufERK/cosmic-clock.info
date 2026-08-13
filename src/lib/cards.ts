@@ -2,12 +2,15 @@ import type { CardFormValues } from "@/components/CardForm";
 
 export type CardData = CardFormValues & {
   id: string;
-  /** ISO timestamp of card creation; display sort uses this only. */
+  /** User-facing list order (0 = first). New cards go to the end. */
+  sortIndex: number;
+  /** ISO timestamp of card creation; audit only — not UI order. */
   createdAt?: string;
   /** ISO timestamp; used for merge freshness (localStorage + DB). */
   updatedAt?: string;
 };
 
+/** @deprecated Legacy guest/user preference; used only to backfill sortIndex once. */
 export type CardSortOrder = "newest" | "oldest";
 
 export function isCardSortOrder(value: unknown): value is CardSortOrder {
@@ -80,6 +83,53 @@ export function sortCardsByCreatedAt<
 >(cards: T[], order: CardSortOrder = "newest"): T[] {
   const sorted = [...cards].sort(compareCardsByCreatedAt);
   return order === "newest" ? sorted.reverse() : sorted;
+}
+
+export function sortCardsBySortIndex<T extends { sortIndex: number; id?: string }>(
+  cards: T[],
+): T[] {
+  return [...cards].sort((a, b) => {
+    if (a.sortIndex !== b.sortIndex) return a.sortIndex - b.sortIndex;
+    return (a.id ?? "").localeCompare(b.id ?? "");
+  });
+}
+
+export function nextSortIndex(cards: { sortIndex: number }[]): number {
+  if (cards.length === 0) return 0;
+  return Math.max(...cards.map((c) => c.sortIndex)) + 1;
+}
+
+export function withDenseSortIndex<T extends { sortIndex: number }>(
+  cards: T[],
+): T[] {
+  return cards.map((card, index) => ({ ...card, sortIndex: index }));
+}
+
+export function moveCardInList<T>(cards: T[], from: number, to: number): T[] {
+  if (
+    from === to ||
+    from < 0 ||
+    to < 0 ||
+    from >= cards.length ||
+    to >= cards.length
+  ) {
+    return cards;
+  }
+  const next = [...cards];
+  const [card] = next.splice(from, 1);
+  if (card === undefined) return cards;
+  next.splice(to, 0, card);
+  return next;
+}
+
+/** One-time: number cards as they appeared under the old createdAt sort. */
+export function assignSortIndexFromCreatedAt<
+  T extends { createdAt?: string; updatedAt?: string },
+>(cards: T[], order: CardSortOrder = "newest"): Array<T & { sortIndex: number }> {
+  return sortCardsByCreatedAt(cards, order).map((card, index) => ({
+    ...card,
+    sortIndex: index,
+  }));
 }
 
 /** Display order: older start dates first. */

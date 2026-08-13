@@ -29,20 +29,24 @@ type Card = {
   day: number;    // 1–31
   month: number;  // 1–12
   year: number;   // >= 0; start <= today
-  createdAt: string; // display sort only
+  sortIndex: number; // display order (0 = first); user-controlled
+  createdAt: string; // audit only — not UI order
   updatedAt: string; // merge freshness
 };
 ```
 
 - **One start date = one card** per user (DB unique + UI).
 - Max **100** / user. Merge: dedupe by date (`updatedAt` wins name) → keep 100 newest by `updatedAt`.
-- **UI order:** by **`createdAt`** (newest ↔ oldest); preference stored on the **User** (`cardSortOrder`). Guests: localStorage. Edits must **not** change `createdAt` or reshuffle the list.
+- **UI order = user order** (`sortIndex`). Not `createdAt`. New cards go to the **end** (`max(sortIndex) + 1`). Edits must **not** change `sortIndex` or reshuffle the list.
+- **Reorder mode:** lock control on the divider. While open: drag-and-drop or arrow buttons only — no edit, no create. Exit: lock again, Escape, or reload (order already saved). Guests: localStorage. Signed-in: DB.
+- **Auth merge:** existing account cards keep their `sortIndex`. Guest cards (except seed 1958-08-07) that are **new dates** append at the end with higher indices. Same date → name/freshness merge, card does not move.
+- **Migration (once):** existing rows are numbered left-to-right as the user saw them (default newest-first; `oldest` preference respected). After that, “new at end” applies only to new creates/merges.
 - Start date: valid civil day; not in the future.
 
 ## Guest
 
 - First visit (no localStorage key): seed **1958-08-07** (Summit Lighthouse); name from i18n.
-- Guest edits in localStorage (`createdAt` + `updatedAt`).
+- Guest edits in localStorage (`sortIndex` + `createdAt` + `updatedAt`). Legacy rows without `sortIndex` are numbered once from the old newest/oldest preference.
 - After sign-in sync (or clear): storage `[]` — key kept so Summit does not re-seed on logout.
 - Seed date **1958-08-07** is **never** merged into an account.
 

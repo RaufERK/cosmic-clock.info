@@ -26,12 +26,12 @@ deploy/nginx/       site configs
 ecosystem.config.cjs
 ```
 
-Do not add a second app stack under the repo (e.g. design dumps stay out of `src/`).
+Do not add a second app stack under the repo (e.g. design dumps stay out of `src/`). Figma Make dumps go in `CCLOCK/`; port rules: [`DESIGN_PORT.md`](DESIGN_PORT.md).
 
 ## Data model
 
-- **User** — `login`, `passwordHash`, `lastSeenAt`, `cardSortOrder`, timestamps  
-- **Card** — `name`, `day`/`month`/`year`, `createdAt`, `updatedAt`; `@@unique([userId, year, month, day])`  
+- **User** — `login`, `passwordHash`, `lastSeenAt`, timestamps  
+- **Card** — `name`, `day`/`month`/`year`, `sortIndex`, `createdAt`, `updatedAt`; `@@unique([userId, year, month, day])`  
 - Soft cap **100** cards / user (app + merge)
 
 ## Card flow
@@ -39,25 +39,26 @@ Do not add a second app stack under the repo (e.g. design dumps stay out of `src
 ```
 Guest
   └─ no localStorage key → seed 1958-08-07
-  └─ CRUD → localStorage (createdAt fixed on create; updatedAt on edit)
+  └─ CRUD → localStorage (sortIndex: new at end; createdAt fixed on create)
 
 Register / Login
   └─ skip seed date 1958-08-07
-  └─ merge by start date (newer updatedAt wins name)
+  └─ merge by start date (newer updatedAt wins name; existing sortIndex kept)
+  └─ new guest dates append at end
   └─ keep ≤100 by updatedAt
   └─ localStorage → []
   └─ toast summary
 
 Signed-in
   └─ Postgres only
-  └─ UI list sorted by createdAt; order preference on User.cardSortOrder
+  └─ UI list by Card.sortIndex; lock mode rewrites indices
 ```
 
 ## Key paths
 
 | Concern | Path |
 |---------|------|
-| Shell / sort UI | `src/components/CosmicApp.tsx` |
+| Shell / reorder UI | `src/components/CosmicApp.tsx` |
 | Create/edit form | `src/components/CardForm.tsx` |
 | Clock face | `src/components/CosmicClock.tsx` |
 | Hand math | `src/lib/cosmic-clock-math.ts` |

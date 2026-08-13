@@ -17,6 +17,7 @@ Read before changing product behavior or structure:
 | [`docs/PRODUCT.md`](docs/PRODUCT.md) | Vision, Card domain, auth/cards doctrine |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Stack, folders, data flow |
 | [`docs/CLOCK_MATH.md`](docs/CLOCK_MATH.md) | Hand theory & formulas |
+| [`docs/DESIGN_PORT.md`](docs/DESIGN_PORT.md) | Figma/`CCLOCK` dump → prod: what to port vs keep |
 | [`docs/INFRA.md`](docs/INFRA.md) | SSH, server Postgres, local Docker DB |
 
 ## Hard rules
@@ -27,7 +28,7 @@ Read before changing product behavior or structure:
 4. **Card limit:** 100 per user — enforce server-side (including migrate/merge).
 5. Prefer small, focused changes. Do not expand into “Later” backlog items unless the user asks.
 6. **Auth doctrine:** login = username (not email); no SMTP / password-reset mail; change-password when signed in; session ~30d; `lastSeenAt`.
-7. **Cards doctrine:** one start date per user; guest → localStorage (seed 1958-08-07, never merged into accounts); on register/login → merge by date then clear localStorage to `[]`; signed-in → DB only. **UI list order** = `createdAt` (newest/oldest), preference on `User.cardSortOrder` (guest: localStorage); edits must not change `createdAt`.
+7. **Cards doctrine:** one start date per user; guest → localStorage (seed 1958-08-07, never merged into accounts); on register/login → merge by date then clear localStorage to `[]`; signed-in → DB only. **UI list order** = `sortIndex` (user order; new cards at end). Lock mode = drag/arrows only. Edits must not change `sortIndex`. Figma dump porting: [`docs/DESIGN_PORT.md`](docs/DESIGN_PORT.md).
 8. **Tests:** domain unit tests via Vitest (`npm test`) — keep math / merge / start-date covered when changing those libs.
 
 ## Default working language

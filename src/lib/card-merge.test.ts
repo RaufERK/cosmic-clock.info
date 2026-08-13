@@ -102,13 +102,105 @@ describe("mergeCardsByDate", () => {
           month: (i % 12) + 1,
           year: 1900 + Math.floor(i / 12),
           updatedAt: new Date(2000, 0, 1 + i),
+          sortIndex: i,
         }),
       );
     }
     const result = mergeCardsByDate(dbCards, []);
     expect(result.cards).toHaveLength(MAX_CARDS_PER_USER);
     expect(result.truncated).toBe(5);
-    // Newest updatedAt first
-    expect(result.cards[0]?.name).toBe(`C${MAX_CARDS_PER_USER + 4}`);
+    // Newest updatedAt kept; then compacted into user order (surviving DB indices).
+    expect(result.cards.map((c) => c.name)).toEqual(
+      Array.from({ length: MAX_CARDS_PER_USER }, (_, i) => `C${i + 5}`),
+    );
+    expect(result.cards.map((c) => c.sortIndex)).toEqual(
+      Array.from({ length: MAX_CARDS_PER_USER }, (_, i) => i),
+    );
+  });
+
+  it("appends new local dates after existing user order", () => {
+    const result = mergeCardsByDate(
+      [
+        card({
+          id: "db1",
+          name: "A",
+          day: 1,
+          month: 1,
+          year: 2000,
+          updatedAt: new Date("2020-01-01"),
+          sortIndex: 0,
+        }),
+        card({
+          id: "db2",
+          name: "C",
+          day: 3,
+          month: 1,
+          year: 2000,
+          updatedAt: new Date("2020-01-01"),
+          sortIndex: 1,
+        }),
+      ],
+      [
+        card({
+          name: "B-second",
+          day: 5,
+          month: 1,
+          year: 2000,
+          updatedAt: new Date("2024-01-02"),
+        }),
+        card({
+          name: "B-first",
+          day: 4,
+          month: 1,
+          year: 2000,
+          updatedAt: new Date("2024-01-01"),
+        }),
+      ],
+    );
+    expect(result.cards.map((c) => c.name)).toEqual([
+      "A",
+      "C",
+      "B-second",
+      "B-first",
+    ]);
+    expect(result.cards.map((c) => c.sortIndex)).toEqual([0, 1, 2, 3]);
+  });
+
+  it("same date keeps DB position and id", () => {
+    const result = mergeCardsByDate(
+      [
+        card({
+          id: "first",
+          name: "Old",
+          day: 1,
+          month: 1,
+          year: 2000,
+          updatedAt: new Date("2020-01-01"),
+          sortIndex: 0,
+        }),
+        card({
+          id: "second",
+          name: "Stay",
+          day: 2,
+          month: 1,
+          year: 2000,
+          updatedAt: new Date("2020-01-01"),
+          sortIndex: 1,
+        }),
+      ],
+      [
+        card({
+          name: "Local newer",
+          day: 1,
+          month: 1,
+          year: 2000,
+          updatedAt: new Date("2024-01-01"),
+        }),
+      ],
+    );
+    expect(result.mergedDates).toBe(1);
+    expect(result.cards.map((c) => c.id)).toEqual(["first", "second"]);
+    expect(result.cards[0]?.name).toBe("Local newer");
+    expect(result.cards.map((c) => c.sortIndex)).toEqual([0, 1]);
   });
 });

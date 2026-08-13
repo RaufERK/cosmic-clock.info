@@ -1,14 +1,19 @@
 import {
   GUEST_EXAMPLE_SEED,
+  assignSortIndexFromCreatedAt,
+  nextSortIndex,
   parseCardSortOrder,
+  sortCardsBySortIndex,
   type CardData,
   type CardSortOrder,
 } from "@/lib/cards";
 import { validateStartDate } from "@/lib/start-date";
 
 const STORAGE_KEY = "cosmic-clock:guest-cards";
+const SORT_STORAGE_KEY = "cosmic-clock:card-sort-order";
 
 export type LocalCard = CardData & {
+  sortIndex: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -17,7 +22,9 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
-function isLocalCard(value: unknown): value is LocalCard {
+function isLocalCard(value: unknown): value is Omit<LocalCard, "sortIndex"> & {
+  sortIndex?: number;
+} {
   if (!value || typeof value !== "object") return false;
   const c = value as Record<string, unknown>;
   if (
@@ -30,16 +37,32 @@ function isLocalCard(value: unknown): value is LocalCard {
   ) {
     return false;
   }
-  // Legacy guest rows may lack createdAt — normalize below.
+  // Legacy guest rows may lack createdAt / sortIndex — normalize below.
   return true;
 }
 
-function normalizeLocalCard(value: unknown): LocalCard | null {
+function readLegacySortOrder(): CardSortOrder {
+  if (typeof window === "undefined") return "newest";
+  try {
+    return parseCardSortOrder(window.localStorage.getItem(SORT_STORAGE_KEY));
+  } catch {
+    return "newest";
+  }
+}
+
+function normalizeLocalCard(value: unknown): Omit<LocalCard, "sortIndex"> & {
+  sortIndex?: number;
+} | null {
   if (!isLocalCard(value)) return null;
   const createdAt =
     typeof (value as { createdAt?: unknown }).createdAt === "string"
       ? (value as LocalCard).createdAt
       : value.updatedAt;
+  const sortIndexRaw = (value as { sortIndex?: unknown }).sortIndex;
+  const sortIndex =
+    typeof sortIndexRaw === "number" && Number.isInteger(sortIndexRaw)
+      ? sortIndexRaw
+      : undefined;
   return {
     id: value.id,
     name: value.name,
@@ -48,7 +71,18 @@ function normalizeLocalCard(value: unknown): LocalCard | null {
     year: value.year,
     createdAt,
     updatedAt: value.updatedAt,
+    ...(sortIndex !== undefined ? { sortIndex } : {}),
   };
+}
+
+function ensureSortIndex(
+  cards: Array<Omit<LocalCard, "sortIndex"> & { sortIndex?: number }>,
+): LocalCard[] {
+  const missing = cards.some((c) => typeof c.sortIndex !== "number");
+  if (!missing) {
+    return sortCardsBySortIndex(cards as LocalCard[]);
+  }
+  return assignSortIndexFromCreatedAt(cards, readLegacySortOrder());
 }
 
 /** True if the storage key was never written (first visit). */
@@ -64,9 +98,16 @@ export function readGuestCards(): LocalCard[] {
   try {
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed
+    const normalized = parsed
       .map(normalizeLocalCard)
-      .filter((c): c is LocalCard => c !== null);
+      .filter(
+        (c): c is Omit<LocalCard, "sortIndex"> & { sortIndex?: number } =>
+          c !== null,
+      );
+    const withIndex = ensureSortIndex(normalized);
+    const hadMissing = normalized.some((c) => typeof c.sortIndex !== "number");
+    if (hadMissing) writeGuestCards(withIndex);
+    return withIndex;
   } catch {
     return [];
   }
@@ -101,6 +142,7 @@ export function loadOrSeedGuestCards(exampleName: string): LocalCard[] {
       day: GUEST_EXAMPLE_SEED.day,
       month: GUEST_EXAMPLE_SEED.month,
       year: GUEST_EXAMPLE_SEED.year,
+      sortIndex: 0,
       createdAt: stamped,
       updatedAt: stamped,
     },
@@ -141,6 +183,7 @@ export function addGuestCard(
     day: data.day,
     month: data.month,
     year: data.year,
+    sortIndex: nextSortIndex(cards),
     createdAt: stamped,
     updatedAt: stamped,
   };
@@ -170,7 +213,7 @@ export function updateGuestCard(
           day: data.day,
           month: data.month,
           year: data.year,
-          // createdAt intentionally unchanged — sort stays stable on edit
+          // sortIndex and createdAt unchanged — user order stays stable on edit
           updatedAt: nowIso(),
         }
       : c,
@@ -185,18 +228,18 @@ export function removeGuestCard(cards: LocalCard[], id: string): LocalCard[] {
   return updated;
 }
 
-const SORT_STORAGE_KEY = "cosmic-clock:card-sort-order";
-
-export function readGuestSortOrder(): CardSortOrder {
-  if (typeof window === "undefined") return "newest";
-  try {
-    return parseCardSortOrder(window.localStorage.getItem(SORT_STORAGE_KEY));
-  } catch {
-    return "newest";
+export function reorderGuestCards(
+  cards: LocalCard[],
+  orderedIds: string[],
+): LocalCard[] | "invalid" {
+  if (orderedIds.length !== cards.length) return "invalid";
+  const byId = new Map(cards.map((c) => [c.id, c]));
+  const next: LocalCard[] = [];
+  for (const [index, id] of orderedIds.entries()) {
+    const card = byId.get(id);
+    if (!card) return "invalid";
+    next.push({ ...card, sortIndex: index });
   }
-}
-
-export function writeGuestSortOrder(order: CardSortOrder): void {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(SORT_STORAGE_KEY, order);
+  writeGuestCards(next);
+  return next;
 }
