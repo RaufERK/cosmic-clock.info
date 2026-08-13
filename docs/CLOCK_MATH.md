@@ -13,6 +13,17 @@ Not planetary astrology; **no ephemeris**. Hands = stage from **start date** →
 
 Dial: **12 × 30°**. At start date all hands at **12** (0°), then advance with elapsed time.
 
+## Navigation strips
+
+Two short arcs **outside** the dial, parallel to its rim. Each sits on the 30° hour sector of one hand so year and month cannot be confused when they overlap.
+
+| Strip | Hand | Color |
+|-------|------|-------|
+| Year | Year | Blue |
+| Month | Month | Purple |
+
+Same radius (`r + 7`). Glow: `opacity 0.7`, `blur(4px)`. Code: `src/components/CosmicClock.tsx`.
+
 ## Formulas
 
 ```text
@@ -28,4 +39,4 @@ dayRotation   = monthFraction * 360   # [0,1) within current month-segment
 ## Code
 
 - `src/lib/cosmic-clock-math.ts` — formulas  
-- `src/components/CosmicClock.tsx` — face + hands  
+- `src/components/CosmicClock.tsx` — face, hands, navigation strips

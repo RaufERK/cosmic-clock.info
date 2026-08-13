@@ -44,6 +44,7 @@ export function CosmicClock({
   const innerTickR = r - 16;
   const innerSmallR = r - 12;
   const numR = r - 30;
+  const stripR = r + 7;
 
   const sectorPath = (i: number) => {
     const sectorR = r - 2;
@@ -98,8 +99,9 @@ export function CosmicClock({
           />
         ))}
 
+        {/* Navigation strips — year (blue) and month (purple) hour-sector marks */}
         <path
-          d={outerArcPath(hourSector, r + 7)}
+          d={outerArcPath(hourSector, stripR)}
           fill="none"
           stroke="#60a5fa"
           strokeWidth="9"
@@ -108,14 +110,14 @@ export function CosmicClock({
           opacity="0.7"
         />
         <path
-          d={outerArcPath(hourSector, r + 7)}
+          d={outerArcPath(hourSector, stripR)}
           fill="none"
           stroke="#60a5fa"
           strokeWidth="4"
           strokeLinecap="round"
         />
         <path
-          d={outerArcPath(minuteSector, r + 7)}
+          d={outerArcPath(minuteSector, stripR)}
           fill="none"
           stroke="#c084fc"
           strokeWidth="9"
@@ -124,7 +126,7 @@ export function CosmicClock({
           opacity="0.7"
         />
         <path
-          d={outerArcPath(minuteSector, r + 7)}
+          d={outerArcPath(minuteSector, stripR)}
           fill="none"
           stroke="#c084fc"
           strokeWidth="4"

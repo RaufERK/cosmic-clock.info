@@ -36,6 +36,7 @@ Do **not** take these from a dump without a new explicit instruction.
 | Topic | Keep in production | Why |
 |-------|--------------------|-----|
 | Clock legend | God-quality names (`messages/*/clockHours`), current type size (`text-[13px]` / `sm:text-sm`, `font-medium`) | Names are the product. Size was fitted so all four locales fit. |
+| Navigation strips | Outer year/month hour-sector arcs; same look as dump (`r + 7`, glow `0.7` / `4px`) | Keep the name. See [`CLOCK_MATH.md`](CLOCK_MATH.md). |
 | Card grid | Full-width `auto-fill` (`minmax(min(100%,340px),380px)`), not a fixed 3-column `max-w-7xl` grid | Cards stay a readable size on wide screens. |
 | Mobile language | Custom dropdown, not a native `<select>` | Native select is a poor fit for this chrome. |
 | Auth | Username login, not email; change-password when signed in | [`PRODUCT.md`](PRODUCT.md) auth doctrine. |

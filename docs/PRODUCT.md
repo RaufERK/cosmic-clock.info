@@ -7,6 +7,7 @@ Live: [cosmic-clock.info](https://cosmic-clock.info). Figma: [CCLOCK](https://ww
 ## Domain (v1)
 
 - Three hands: **year** (12y cycle), **month** (1y), **day** (1 month). All start at **12** on the start date.
+- **Navigation strips** — outer rim arcs marking the year/month hour so the two hands cannot be confused: [`CLOCK_MATH.md`](CLOCK_MATH.md).
 - **No** ephemeris / planetary astrology.
 - Legend uses God-quality names (`messages/*/clockHours`), not bare hour numbers.
 
