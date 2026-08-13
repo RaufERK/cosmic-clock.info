@@ -58,3 +58,12 @@ SENTRY_DSN=https://…@….ingest.de.sentry.io/…
 
 Optional source maps on build: `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`.  
 Tunnel: `/monitoring` (excluded from locale proxy). Local verify: `ALLOW_SENTRY_TEST=1` then `GET /api/sentry-test`.
+
+## Admin stats (`/admin`)
+
+Signed-in allowlist only. Set `ADMIN_LOGINS` in local `.env` and production `shared/.env` (comma-separated logins; compared after lowercase). Missing env → nobody can open the page.
+
+- URL: `https://cosmic-clock.info/admin` (also `http://localhost:3000/admin`)
+- Non-admin signed-in users → 404
+- Signed-out → sign-in form on `/admin`
+- Do not link it from the public UI. Details: [`ADMIN.md`](ADMIN.md)

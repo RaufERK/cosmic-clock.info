@@ -19,6 +19,7 @@ Read before changing product behavior or structure:
 | [`docs/CLOCK_MATH.md`](docs/CLOCK_MATH.md) | Hand theory & formulas |
 | [`docs/DESIGN_PORT.md`](docs/DESIGN_PORT.md) | Figma/`CCLOCK` dump → prod: what to port vs keep |
 | [`docs/INFRA.md`](docs/INFRA.md) | SSH, server Postgres, local Docker DB |
+| [`docs/ADMIN.md`](docs/ADMIN.md) | Internal `/admin` stats (allowlist, not public) |
 
 ## Hard rules
 

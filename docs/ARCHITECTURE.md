@@ -65,6 +65,7 @@ Signed-in
 | Guest storage | `src/lib/guest-cards.ts` |
 | Card actions | `src/lib/card-actions.ts` |
 | Auth | `src/auth.ts` + auth components |
+| Admin stats | `src/app/admin/` — [`ADMIN.md`](ADMIN.md) |
 
 ## Ops
 
