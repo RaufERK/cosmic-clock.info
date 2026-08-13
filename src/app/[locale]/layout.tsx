@@ -25,7 +25,6 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: "meta" });
   return {
     title: t("title"),
-    description: t("tagline"),
     icons: {
       icon: [
         { url: "/favicon.svg", type: "image/svg+xml" },

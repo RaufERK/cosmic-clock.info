@@ -857,12 +857,6 @@ export function CosmicApp() {
         )}
       </main>
 
-      <footer className="relative z-10 py-20 text-center opacity-10">
-        <p className="text-[9px] font-bold tracking-[0.5em] uppercase">
-          {t("footer")}
-        </p>
-      </footer>
-
       <AnimatePresence>
         {authModal ? (
           <AuthModal

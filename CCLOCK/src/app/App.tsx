@@ -344,10 +344,6 @@ function AppInner() {
         </div>
       </main>
 
-      <footer className="relative z-10 py-20 text-center opacity-10">
-        <p className="text-[9px] tracking-[0.5em] uppercase font-bold">Celestial Map Engine • 2026</p>
-      </footer>
-
       {/* Auth Modal */}
       <>
         {authModal && (

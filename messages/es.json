@@ -1,7 +1,6 @@
 {
   "meta": {
-    "title": "Reloj Cósmico",
-    "tagline": "Celestial Map Engine"
+    "title": "Reloj Cósmico"
   },
   "app": {
     "title": "Reloj Cósmico",
@@ -98,7 +97,6 @@
       "Visión de Dios",
       "Victoria de Dios"
     ],
-    "footer": "Celestial Map Engine • 2026",
     "loading": "Cargando…",
     "authPending": "Espera…",
     "authErrorInvalid": "Usuario o contraseña incorrectos.",

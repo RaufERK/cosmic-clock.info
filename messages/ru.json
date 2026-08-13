@@ -1,7 +1,6 @@
 {
   "meta": {
-    "title": "Космические часы",
-    "tagline": "Celestial Map Engine"
+    "title": "Космические часы"
   },
   "app": {
     "title": "Космические часы",
@@ -98,7 +97,6 @@
       "Бог-Видение",
       "Бог-Победа"
     ],
-    "footer": "Celestial Map Engine • 2026",
     "loading": "Загрузка…",
     "authPending": "Подождите…",
     "authErrorInvalid": "Неверный логин или пароль.",
