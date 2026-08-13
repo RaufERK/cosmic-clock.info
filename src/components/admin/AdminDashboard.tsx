@@ -5,7 +5,12 @@ import { useSession } from "next-auth/react";
 import { AdminSignIn } from "@/components/admin/AdminSignIn";
 import { getAdminStatsAction } from "@/lib/admin-stats-actions";
 import type { AdminStats } from "@/lib/admin-stats";
-import type { DayCount } from "@/lib/admin-day-buckets";
+import {
+  formatHistogramDate,
+  histogramAxisTicks,
+  histogramValueScale,
+  type DayCount,
+} from "@/lib/admin-day-buckets";
 
 function DailyHistogram({
   title,
@@ -14,28 +19,119 @@ function DailyHistogram({
   title: string;
   days: DayCount[];
 }) {
-  const max = Math.max(1, ...days.map((day) => day.count));
-  const first = days[0]?.date ?? "";
-  const last = days[days.length - 1]?.date ?? "";
+  const [hovered, setHovered] = useState<number | null>(null);
+  const dataMax = Math.max(0, ...days.map((day) => day.count));
+  const { top, ticks: valueTicks } = histogramValueScale(dataMax);
+  const dateTicks = histogramAxisTicks(days.map((day) => day.date));
+  const dateTickAt = new Set(dateTicks.map((tick) => tick.index));
+  const lastIndex = days.length - 1;
+  const hoveredDay = hovered != null ? days[hovered] : null;
 
   return (
     <section className="rounded-xl border border-glass-border bg-glass p-4">
-      <h2 className="text-sm font-medium text-foreground">{title}</h2>
-      <div className="mt-4 flex h-36 items-end gap-0.5 border-b border-glass-border">
-        {days.map((day) => (
-          <div
-            key={day.date}
-            className="min-w-0 flex-1 rounded-t-sm bg-accent/80"
-            style={{
-              height: day.count === 0 ? 0 : `${(day.count / max) * 100}%`,
-            }}
-            title={`${day.date}: ${day.count}`}
-          />
-        ))}
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="text-sm font-medium text-foreground">{title}</h2>
+        <p className="min-h-[1rem] text-[11px] tabular-nums text-muted">
+          {hoveredDay
+            ? `${formatHistogramDate(hoveredDay.date)} · ${hoveredDay.count}`
+            : "Hover a bar"}
+        </p>
       </div>
-      <div className="mt-2 flex justify-between text-xs text-muted">
-        <span>{first}</span>
-        <span>{last}</span>
+      <div className="mt-4 flex gap-2">
+        <div className="relative h-36 w-8 shrink-0">
+          {valueTicks.map((value) => (
+            <span
+              key={value}
+              className="absolute right-0 text-[10px] leading-none tabular-nums text-muted"
+              style={{
+                bottom: `${(value / top) * 100}%`,
+                transform:
+                  value === 0 ? "translateY(0)" : "translateY(50%)",
+              }}
+            >
+              {value}
+            </span>
+          ))}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="relative h-36">
+            {valueTicks.map((value) => (
+              <div
+                key={value}
+                className={
+                  value === 0
+                    ? "absolute right-0 left-0 border-t border-glass-border"
+                    : "absolute right-0 left-0 border-t border-white/10"
+                }
+                style={{ bottom: `${(value / top) * 100}%` }}
+              />
+            ))}
+            <div className="relative flex h-full gap-0.5">
+              {days.map((day, index) => {
+                const heightPct =
+                  day.count === 0 ? 0 : (day.count / top) * 100;
+                const isHovered = hovered === index;
+                return (
+                  <div
+                    key={day.date}
+                    className="relative min-w-0 flex-1 cursor-pointer"
+                    onMouseEnter={() => setHovered(index)}
+                    onMouseLeave={() => setHovered(null)}
+                  >
+                    <div
+                      className={
+                        isHovered
+                          ? "absolute right-0 bottom-0 left-0 rounded-t-sm bg-accent"
+                          : "absolute right-0 bottom-0 left-0 rounded-t-sm bg-accent/80"
+                      }
+                      style={{ height: `${heightPct}%` }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div className="flex gap-0.5">
+            {days.map((day, index) => (
+              <div
+                key={`${day.date}-tick`}
+                className="flex min-w-0 flex-1 justify-center"
+              >
+                <span
+                  className={
+                    dateTickAt.has(index)
+                      ? "h-1.5 w-px bg-glass-border"
+                      : "h-1.5"
+                  }
+                />
+              </div>
+            ))}
+          </div>
+          <div className="relative mt-1 h-5">
+            {dateTicks.map((tick) => {
+              const isFirst = tick.index === 0;
+              const isLast = tick.index === lastIndex && days.length > 1;
+              let left = `${((tick.index + 0.5) / days.length) * 100}%`;
+              let transform = "translateX(-50%)";
+              if (isFirst) {
+                left = "0%";
+                transform = "translateX(0)";
+              } else if (isLast) {
+                left = "100%";
+                transform = "translateX(-100%)";
+              }
+              return (
+                <span
+                  key={tick.index}
+                  className="absolute top-0 whitespace-nowrap text-[10px] leading-none text-muted"
+                  style={{ left, transform }}
+                >
+                  {tick.label}
+                </span>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </section>
   );
