@@ -49,6 +49,7 @@ type Card = {
 - Guest edits in localStorage (`sortIndex` + `createdAt` + `updatedAt`). Legacy rows without `sortIndex` are numbered once from the old newest/oldest preference.
 - After sign-in sync (or clear): storage `[]` — key kept so Summit does not re-seed on logout.
 - Seed date **1958-08-07** is **never** merged into an account.
+- Guest activity is not stored as cards in Postgres. Guest **creates** append `StatEvent` rows (no payload): [`ADMIN.md`](ADMIN.md).
 
 ## Flows
 

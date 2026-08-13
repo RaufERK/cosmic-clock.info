@@ -10,6 +10,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Cosmic Clock — agent instructions
 
+**Docs are for AI agents, not end users.** English only (code, comments, `docs/`, this file). Prefer one source of truth and a link; duplicate a rule only when omitting it here would cause a wrong change. Keep docs in sync when behavior changes. No filler.
+
 Read before changing product behavior or structure:
 
 | Doc | Purpose |
@@ -19,7 +21,7 @@ Read before changing product behavior or structure:
 | [`docs/CLOCK_MATH.md`](docs/CLOCK_MATH.md) | Hand theory & formulas |
 | [`docs/DESIGN_PORT.md`](docs/DESIGN_PORT.md) | Figma/`CCLOCK` dump → prod: what to port vs keep |
 | [`docs/INFRA.md`](docs/INFRA.md) | SSH, server Postgres, local Docker DB |
-| [`docs/ADMIN.md`](docs/ADMIN.md) | Internal `/admin` stats (allowlist, not public) |
+| [`docs/ADMIN.md`](docs/ADMIN.md) | `/admin` stats (accounts + guest creates) |
 
 ## Hard rules
 
@@ -35,4 +37,4 @@ Read before changing product behavior or structure:
 ## Default working language
 
 - Code, identifiers, comments, and **agent docs:** English.
-- Commit messages for this repo: follow the user’s language preference when they ask to commit.
+- Commit messages: follow the user’s language when they ask to commit.

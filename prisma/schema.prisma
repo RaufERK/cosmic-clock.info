@@ -41,3 +41,12 @@ model Card {
   @@index([userId])
   @@index([userId, sortIndex])
 }
+
+/// Append-only analytics. One row = one event at server time. No payload.
+model StatEvent {
+  id        String   @id @default(cuid())
+  kind      String
+  createdAt DateTime @default(now())
+
+  @@index([kind, createdAt])
+}

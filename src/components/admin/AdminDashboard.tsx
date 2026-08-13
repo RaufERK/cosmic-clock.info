@@ -143,33 +143,53 @@ function AdminStatsView({ stats }: { stats: AdminStats }) {
       <p className="text-xs uppercase tracking-wide text-muted">Admin</p>
       <h1 className="mt-1 text-2xl text-foreground">Cosmic Clock</h1>
       <p className="mt-2 text-sm text-muted">
-        Days are UTC. New accounts are registrations (
-        <code className="text-foreground">createdAt</code>), not daily logins.
-        Guest cards are not included.
+        Days are UTC. Account cards come from Postgres{" "}
+        <code className="text-foreground">createdAt</code>. Guest creates are
+        a separate event log — do not add the two series (register merge would
+        double-count).
       </p>
 
-      <dl className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <dl className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
         <div className="rounded-xl border border-glass-border bg-glass p-3">
           <dt className="text-xs text-muted">Users</dt>
           <dd className="mt-1 text-xl tabular-nums">{stats.userCount}</dd>
         </div>
         <div className="rounded-xl border border-glass-border bg-glass p-3">
-          <dt className="text-xs text-muted">Cards</dt>
+          <dt className="text-xs text-muted">Account cards</dt>
           <dd className="mt-1 text-xl tabular-nums">{stats.cardCount}</dd>
+        </div>
+        <div className="rounded-xl border border-glass-border bg-glass p-3">
+          <dt className="text-xs text-muted">Guest creates</dt>
+          <dd className="mt-1 text-xl tabular-nums">
+            {stats.guestCreateCount}
+          </dd>
         </div>
         <div className="rounded-xl border border-glass-border bg-glass p-3">
           <dt className="text-xs text-muted">Users today</dt>
           <dd className="mt-1 text-xl tabular-nums">+{stats.usersToday}</dd>
         </div>
         <div className="rounded-xl border border-glass-border bg-glass p-3">
-          <dt className="text-xs text-muted">Cards today</dt>
+          <dt className="text-xs text-muted">Account cards today</dt>
           <dd className="mt-1 text-xl tabular-nums">+{stats.cardsToday}</dd>
+        </div>
+        <div className="rounded-xl border border-glass-border bg-glass p-3">
+          <dt className="text-xs text-muted">Guest creates today</dt>
+          <dd className="mt-1 text-xl tabular-nums">
+            +{stats.guestCreatesToday}
+          </dd>
         </div>
       </dl>
 
       <div className="mt-8 grid gap-6">
         <DailyHistogram title="New accounts (30d)" days={stats.accountDays} />
-        <DailyHistogram title="New cards (30d)" days={stats.cardDays} />
+        <DailyHistogram
+          title="New account cards (30d)"
+          days={stats.cardDays}
+        />
+        <DailyHistogram
+          title="Guest card creates (30d)"
+          days={stats.guestCreateDays}
+        />
       </div>
 
       <section className="mt-8">

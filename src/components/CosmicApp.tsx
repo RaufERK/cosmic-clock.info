@@ -32,6 +32,7 @@ import {
   type MergeCardsResult,
 } from "@/lib/card-actions";
 import { touchLastSeenAction } from "@/lib/auth-actions";
+import { reportGuestCardCreate } from "@/lib/guest-card-stats";
 import {
   type CardData,
   isGuestExampleSeedDate,
@@ -271,6 +272,7 @@ export function CosmicApp() {
       }
       setCards(next);
       setIsAdding(false);
+      reportGuestCardCreate(data);
       return;
     }
 

@@ -1,6 +1,6 @@
 # Cosmic Clock — Architecture
 
-Product doctrine: [`PRODUCT.md`](PRODUCT.md). Math: [`CLOCK_MATH.md`](CLOCK_MATH.md). Host: [`INFRA.md`](INFRA.md).
+Product doctrine: [`PRODUCT.md`](PRODUCT.md). Math: [`CLOCK_MATH.md`](CLOCK_MATH.md). Host: [`INFRA.md`](INFRA.md). Operator stats: [`ADMIN.md`](ADMIN.md).
 
 ## Stack
 
@@ -16,10 +16,11 @@ Product doctrine: [`PRODUCT.md`](PRODUCT.md). Math: [`CLOCK_MATH.md`](CLOCK_MATH
 ## Layout
 
 ```
-src/app/[locale]/   routes
-src/components/     CosmicApp, CosmicClock, CardForm, auth UI
-src/lib/            math, cards, guest-cards, card-actions, auth
-src/proxy.ts        next-intl middleware entry
+src/app/[locale]/   public routes (next-intl)
+src/app/admin/      operator stats (no locale prefix)
+src/components/     CosmicApp, CosmicClock, CardForm, auth UI, admin/
+src/lib/            math, cards, guest-cards, card-actions, auth, admin-*
+src/proxy.ts        next-intl middleware (excludes api, admin, monitoring)
 messages/           locale JSON
 prisma/             schema + migrations
 deploy/nginx/       site configs
@@ -32,14 +33,17 @@ Do not add a second app stack under the repo (e.g. design dumps stay out of `src
 
 - **User** — `login`, `passwordHash`, `lastSeenAt`, timestamps  
 - **Card** — `name`, `day`/`month`/`year`, `sortIndex`, `createdAt`, `updatedAt`; `@@unique([userId, year, month, day])`  
-- Soft cap **100** cards / user (app + merge)
+- **StatEvent** — append-only (`kind`, `createdAt`); guest card creates for `/admin`  
+- Soft cap **100** cards / user (app + merge)  
+- Guest **cards** stay in `localStorage`. Guest **creates** may write a `StatEvent` (no payload): [`ADMIN.md`](ADMIN.md)
 
 ## Card flow
 
 ```
 Guest
-  └─ no localStorage key → seed 1958-08-07
+  └─ no localStorage key → seed 1958-08-07 (no StatEvent)
   └─ CRUD → localStorage (sortIndex: new at end; createdAt fixed on create)
+  └─ user create (not seed) → fire-and-forget POST → StatEvent
 
 Register / Login
   └─ skip seed date 1958-08-07
@@ -65,7 +69,7 @@ Signed-in
 | Guest storage | `src/lib/guest-cards.ts` |
 | Card actions | `src/lib/card-actions.ts` |
 | Auth | `src/auth.ts` + auth components |
-| Admin stats | `src/app/admin/` — [`ADMIN.md`](ADMIN.md) |
+| Admin stats | `src/app/admin/` + `src/lib/admin-*.ts` — [`ADMIN.md`](ADMIN.md) |
 
 ## Ops
 

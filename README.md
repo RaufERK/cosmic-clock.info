@@ -10,6 +10,7 @@
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Stack, data flow |
 | [`docs/CLOCK_MATH.md`](docs/CLOCK_MATH.md) | Hand formulas |
 | [`docs/INFRA.md`](docs/INFRA.md) | SSH, DB, deploy, Umami |
+| [`docs/ADMIN.md`](docs/ADMIN.md) | Operator `/admin` (agents) |
 | [`AGENTS.md`](AGENTS.md) | Agent hard rules |
 
 ## Local

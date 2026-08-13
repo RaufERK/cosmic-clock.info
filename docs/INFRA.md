@@ -16,7 +16,7 @@ Alias is **`amster_app`** (underscore).
 | | |
 |--|--|
 | App | `/home/appuser/apps/cosmic-clock` |
-| Env | `shared/.env` (`DATABASE_URL`, `AUTH_SECRET`, Umami public ids) |
+| Env | `shared/.env` (`DATABASE_URL`, `AUTH_SECRET`, `ADMIN_LOGINS`, Umami public ids) |
 | PM2 | port **3060**, bind `127.0.0.1` |
 | Site | https://cosmic-clock.info |
 
@@ -61,9 +61,4 @@ Tunnel: `/monitoring` (excluded from locale proxy). Local verify: `ALLOW_SENTRY_
 
 ## Admin stats (`/admin`)
 
-Signed-in allowlist only. Set `ADMIN_LOGINS` in local `.env` and production `shared/.env` (comma-separated logins; compared after lowercase). Missing env → nobody can open the page.
-
-- URL: `https://cosmic-clock.info/admin` (also `http://localhost:3000/admin`)
-- Non-admin signed-in users → 404
-- Signed-out → sign-in form on `/admin`
-- Do not link it from the public UI. Details: [`ADMIN.md`](ADMIN.md)
+Allowlist `ADMIN_LOGINS` in `.env` / `shared/.env`. Behavior and guest-create events: [`ADMIN.md`](ADMIN.md).
