@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Prisma generated client
     "src/generated/**",
+    // Figma Make dump — not part of the Next.js app
+    "CCLOCK/**",
   ]),
 ]);
 

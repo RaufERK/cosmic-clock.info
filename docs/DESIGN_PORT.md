@@ -7,7 +7,7 @@ Dump origin: [CCLOCK in Figma](https://www.figma.com/design/OyrUnsJBNxJMONNqMXK1
 ## Workflow
 
 1. Drop the new bundle into `CCLOCK/` (replace files, keep the folder name).
-2. **Commit the dump** so the next drop is a git diff, not a blind rewrite.
+2. **Commit the dump** so the next drop is a git diff, not a blind rewrite. Keep `CCLOCK/` in `tsconfig.json` `exclude` so Next.js does not typecheck the Vite mock on build.
 3. Compare dump vs `src/` — real screens only (see below).
 4. Check **Locked production decisions** in this file. Anything listed here stays as in prod unless the user explicitly overrides it.
 5. Summarize deltas (visual vs product vs leftover). Ask what to port.
@@ -51,7 +51,7 @@ Do **not** take these from a dump without a new explicit instruction.
 
 ## Agent checklist
 
-- [ ] Dump committed under `CCLOCK/`
+- [ ] Dump committed under `CCLOCK/` (`tsconfig` / eslint still exclude that folder)
 - [ ] Diff limited to the four real screens + i18n
 - [ ] Locked rows above left unchanged
 - [ ] Clock hands still from `src/lib/cosmic-clock-math.ts`
