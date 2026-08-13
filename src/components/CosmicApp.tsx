@@ -655,9 +655,9 @@ export function CosmicApp() {
       </nav>
 
       <div className="relative z-10 mx-auto mb-10 w-full max-w-7xl px-6 sm:px-8 lg:px-10">
-        <div className="flex items-center gap-4">
-          <div className="h-px flex-1 bg-white/10" />
-          {ready && cards.length > 1 ? (
+        {ready && cards.length > 1 ? (
+          <div className="flex items-center gap-4">
+            <div className="h-px flex-1 bg-white/10" />
             <button
               type="button"
               onClick={toggleDragMode}
@@ -676,9 +676,11 @@ export function CosmicApp() {
                 <Lock className="h-4 w-4" aria-hidden />
               )}
             </button>
-          ) : null}
-          <div className="h-px flex-1 bg-white/10" />
-        </div>
+            <div className="h-px flex-1 bg-white/10" />
+          </div>
+        ) : (
+          <div className="h-px w-full bg-white/10" />
+        )}
       </div>
 
       <main className="relative z-10 mx-auto w-full px-6 pb-32 sm:px-8 lg:px-10">

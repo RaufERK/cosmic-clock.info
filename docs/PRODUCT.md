@@ -38,7 +38,7 @@ type Card = {
 - **One start date = one card** per user (DB unique + UI).
 - Max **100** / user. Merge: dedupe by date (`updatedAt` wins name) → keep 100 newest by `updatedAt`.
 - **UI order = user order** (`sortIndex`). Not `createdAt`. New cards go to the **end** (`max(sortIndex) + 1`). Edits must **not** change `sortIndex` or reshuffle the list.
-- **Reorder mode:** lock control on the divider. While open: drag-and-drop or arrow buttons only — no edit, no create. Exit: lock again, Escape, or reload (order already saved). Guests: localStorage. Signed-in: DB.
+- **Reorder mode:** lock control on the divider — the lock appears only when the user has **2+** clocks. While open: drag-and-drop or arrow buttons only — no edit, no create. Exit: lock again, Escape, or reload (order already saved). Guests: localStorage. Signed-in: DB.
 - **Auth merge:** existing account cards keep their `sortIndex`. Guest cards (except seed 1958-08-07) that are **new dates** append at the end with higher indices. Same date → name/freshness merge, card does not move.
 - **Migration (once):** existing rows are numbered left-to-right as the user saw them (default newest-first; `oldest` preference respected). After that, “new at end” applies only to new creates/merges.
 - Start date: valid civil day; not in the future.
