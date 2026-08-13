@@ -757,8 +757,8 @@ export function CosmicApp() {
 
                       <div className="mt-auto flex w-full items-end justify-between border-t border-white/10 pt-4">
                         <div className="min-w-0 flex-1 flex flex-col gap-1 pr-2">
-                          <div className="flex items-start gap-2">
-                            <div className="mt-0.5 h-2.5 w-2.5 flex-shrink-0 rounded-sm bg-blue-400 shadow-[0_0_6px_rgba(96,165,250,0.7)]" />
+                          <div className="flex items-center gap-2">
+                            <div className="h-3 w-3 flex-shrink-0 rounded-sm bg-blue-400 shadow-[0_0_6px_rgba(96,165,250,0.7)]" />
                             <p className="min-w-0 text-[13px] leading-snug font-medium tracking-wide text-blue-300/95 sm:text-sm">
                               <span className="font-semibold text-white/50">
                                 {t("legendYear")}:
@@ -766,8 +766,8 @@ export function CosmicApp() {
                               {clockHours[getHandHourIndex(hands.year)] ?? ""}
                             </p>
                           </div>
-                          <div className="flex items-start gap-2">
-                            <div className="mt-0.5 h-2.5 w-2.5 flex-shrink-0 rounded-sm bg-purple-400 shadow-[0_0_6px_rgba(192,132,252,0.7)]" />
+                          <div className="flex items-center gap-2">
+                            <div className="h-3 w-3 flex-shrink-0 rounded-sm bg-purple-400 shadow-[0_0_6px_rgba(192,132,252,0.7)]" />
                             <p className="min-w-0 text-[13px] leading-snug font-medium tracking-wide text-purple-300/95 sm:text-sm">
                               <span className="font-semibold text-white/50">
                                 {t("legendMonth")}:
