@@ -18,6 +18,7 @@ import { AuthModal } from "@/components/AuthModal";
 import { CardForm, type CardFormValues } from "@/components/CardForm";
 import { ChangePasswordModal } from "@/components/ChangePasswordModal";
 import { CosmicClock } from "@/components/CosmicClock";
+import { CosmicSpinner } from "@/components/CosmicSpinner";
 import { Toast, type ToastMessage, type ToastVariant } from "@/components/Toast";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
@@ -685,10 +686,14 @@ export function CosmicApp() {
         )}
       </div>
 
+      {!ready ? (
+        <div className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center">
+          <CosmicSpinner size={264} label={t("loading")} showLabel />
+        </div>
+      ) : null}
+
       <main className="relative z-10 mx-auto w-full px-6 pb-32 sm:px-8 lg:px-10">
-        {!ready ? (
-          <div className="py-24 text-center text-white/30">{t("loading")}</div>
-        ) : (
+        {ready ? (
           <div
             className={`grid justify-center gap-8 [grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),380px))] ${
               cardsPending ? "opacity-70" : ""
@@ -854,7 +859,7 @@ export function CosmicApp() {
               </motion.div>
             </AnimatePresence>
           </div>
-        )}
+        ) : null}
       </main>
 
       <AnimatePresence>

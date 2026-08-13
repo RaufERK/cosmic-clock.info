@@ -65,6 +65,7 @@ Signed-in
 | Shell / reorder UI | `src/components/CosmicApp.tsx` |
 | Create/edit form | `src/components/CardForm.tsx` |
 | Clock face | `src/components/CosmicClock.tsx` |
+| Wait spinner | `src/components/CosmicSpinner.tsx` |
 | Hand math | `src/lib/cosmic-clock-math.ts` |
 | Guest storage | `src/lib/guest-cards.ts` |
 | Card actions | `src/lib/card-actions.ts` |

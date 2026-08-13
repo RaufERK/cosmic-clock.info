@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { AdminSignIn } from "@/components/admin/AdminSignIn";
+import { CosmicSpinner } from "@/components/CosmicSpinner";
 import { getAdminStatsAction } from "@/lib/admin-stats-actions";
 import type { AdminStats } from "@/lib/admin-stats";
 import {
@@ -265,7 +266,7 @@ export function AdminDashboard() {
   if (status === "loading") {
     return (
       <main className="flex min-h-full items-center justify-center px-4">
-        <p className="text-sm text-muted">Loading…</p>
+        <CosmicSpinner size={72} label="Loading…" showLabel />
       </main>
     );
   }
@@ -281,7 +282,7 @@ export function AdminDashboard() {
   if (!stats) {
     return (
       <main className="flex min-h-full items-center justify-center px-4">
-        <p className="text-sm text-muted">Loading…</p>
+        <CosmicSpinner size={72} label="Loading…" showLabel />
       </main>
     );
   }
