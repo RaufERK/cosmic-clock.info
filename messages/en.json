@@ -104,12 +104,12 @@
     "authErrorTaken": "This login is already taken.",
     "authErrorWeak": "Password must be at least 6 characters.",
     "authErrorWrongPassword": "Current password is incorrect.",
-    "authErrorUnauthorized": "Please sign in again.",
+    "authErrorUnauthorized": "Please log in again.",
     "authErrorRateLimited": "Too many attempts. Wait a few minutes and try again.",
     "authErrorUnknown": "Something went wrong. Try again.",
     "exampleSummit": "The Summit Lighthouse",
-    "guestHint": "Your calendars are saved on this device. Sign in to sync them across devices.",
-    "cardErrorUnauthorized": "Please sign in to manage cards.",
+    "guestHint": "Your calendars are saved on this device. Log in to sync them across devices.",
+    "cardErrorUnauthorized": "Please log in to manage cards.",
     "cardErrorInvalid": "Check the card name and date.",
     "cardErrorNotFound": "Card not found.",
     "cardErrorLimit": "You can have at most 100 cards.",
@@ -119,6 +119,6 @@
     "mergeAdded": "{count, plural, one {# calendar added.} other {# calendars added.}}",
     "mergeDeduped": "{count, plural, one {# duplicate date merged.} other {# duplicate dates merged.}}",
     "mergeTruncated": "{count, plural, one {# calendar over the limit was dropped.} other {# calendars over the limit were dropped.}}",
-    "mergeError": "Could not sync local calendars. Try signing in again."
+    "mergeError": "Could not sync local calendars. Try logging in again."
   }
 }

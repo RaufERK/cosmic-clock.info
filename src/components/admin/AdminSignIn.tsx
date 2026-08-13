@@ -13,12 +13,12 @@ function errorMessage(result: AuthActionResult): string {
     case "rate_limited":
       return "Too many attempts. Try again in a few minutes.";
     case "unauthorized":
-      return "Sign in required.";
+      return "Login required.";
     case "mismatch":
     case "taken":
     case "weak":
     case "unknown":
-      return "Could not sign in.";
+      return "Could not log in.";
     default: {
       const _exhaustive: never = result.error;
       return _exhaustive;
@@ -54,7 +54,7 @@ export function AdminSignIn() {
   return (
     <main className="mx-auto flex min-h-full max-w-sm flex-col justify-center px-4 py-16">
       <h1 className="text-xl text-foreground">Admin</h1>
-      <p className="mt-2 text-sm text-muted">Sign in with an allowlisted login.</p>
+      <p className="mt-2 text-sm text-muted">Log in with an allowlisted login.</p>
       <form className="mt-6 space-y-3" onSubmit={handleSubmit}>
         <div>
           <label className="mb-1 block text-sm text-muted" htmlFor={loginId}>
@@ -93,7 +93,7 @@ export function AdminSignIn() {
           disabled={pending}
           className="w-full rounded-xl bg-accent px-4 py-2.5 text-sm text-white disabled:opacity-60"
         >
-          {pending ? "Signing in…" : "Sign in"}
+          {pending ? "Logging in…" : "Login"}
         </button>
       </form>
     </main>
