@@ -16,6 +16,21 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
+function openGraphLocale(locale: string): string {
+  switch (locale) {
+    case "en":
+      return "en_US";
+    case "ru":
+      return "ru_RU";
+    case "es":
+      return "es_ES";
+    case "pt":
+      return "pt_PT";
+    default:
+      return "en_US";
+  }
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -23,8 +38,17 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "meta" });
+  const title = t("title");
   return {
-    title: t("title"),
+    title,
+    description: title,
+    openGraph: {
+      title,
+      description: title,
+      siteName: title,
+      locale: openGraphLocale(locale),
+      type: "website",
+    },
     icons: {
       icon: [
         { url: "/favicon.svg", type: "image/svg+xml" },
