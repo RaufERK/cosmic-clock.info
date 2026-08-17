@@ -20,7 +20,7 @@ Alias is **`amster_app`** (underscore).
 | PM2 | port **3060**, bind `127.0.0.1` |
 | Site | https://cosmic-clock.info |
 
-Deploy: `npx pm2 deploy production update` (migrate + prune stale users).
+Deploy: `npm run deploy` (migrate + prune stale users).
 
 ## PostgreSQL
 

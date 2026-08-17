@@ -74,5 +74,5 @@ Signed-in
 
 ## Ops
 
-- Deploy: `npx pm2 deploy production update` (migrate + `users:prune-stale`)  
+- Deploy: `npm run deploy` (migrate + `users:prune-stale`)  
 - Prune: users with `lastSeenAt` older than 2 years  

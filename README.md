@@ -29,5 +29,5 @@ Production binds **3060** behind nginx — see `ecosystem.config.cjs` / `docs/IN
 ## Deploy
 
 ```bash
-npx pm2 deploy production update
+npm run deploy
 ```
