@@ -15,9 +15,9 @@ Live: [cosmic-clock.info](https://cosmic-clock.info). Figma: [CCLOCK](https://ww
 
 - Identifier: **login** (username, not email) + password.
 - Session ~30d (Auth.js JWT). No SMTP / email verification / password-reset mail.
-- Login/register: ~**10 attempts / 10 min per IP** (in-memory; resets on process restart).
+- Login/register: ~**10 attempts / 10 min per client IP** (in-memory; resets on process restart). IP from nginx `X-Real-IP` (`$remote_addr`), not the first `X-Forwarded-For` hop. Limit runs in Credentials `authorize` (UI actions and `/api/auth`).
 - Forgotten password → new account + re-enter cards.
-- Signed-in: click own login → change password.
+- Signed-in: click own login → change password. That sets `passwordChangedAt` and re-issues **this** JWT; other devices with older tokens are signed out.
 - `lastSeenAt` on auth + ≤1×/day while using; idle **2+ years** pruned on deploy.
 - Locales: **en / ru / es / pt**.
 

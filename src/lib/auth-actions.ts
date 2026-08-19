@@ -1,14 +1,16 @@
 "use server";
 
 import { AuthError } from "next-auth";
-import { headers } from "next/headers";
 import { auth, signIn } from "@/auth";
 import { prisma } from "@/lib/db";
-import { hashPassword, verifyPassword } from "@/lib/password";
 import {
+  authRateKey,
   clearAuthAttempts,
   consumeAuthAttempt,
+  isAuthRateLimited,
 } from "@/lib/auth-rate-limit";
+import { getClientIp } from "@/lib/client-ip";
+import { hashPassword, verifyPassword } from "@/lib/password";
 import {
   isValidLoginFormat,
   normalizeLogin,
@@ -50,24 +52,8 @@ function isCredentialsFailure(error: unknown): boolean {
   );
 }
 
-async function clientIp(): Promise<string> {
-  const h = await headers();
-  const forwarded = h.get("x-forwarded-for");
-  if (forwarded) {
-    const first = forwarded.split(",")[0]?.trim();
-    if (first) return first;
-  }
-  const real = h.get("x-real-ip")?.trim();
-  if (real) return real;
-  return "unknown";
-}
-
-function authRateKey(ip: string): string {
-  return `auth:${ip}`;
-}
-
 async function guardAuthRateLimit(): Promise<AuthActionResult | null> {
-  const ip = await clientIp();
+  const ip = await getClientIp();
   const limited = consumeAuthAttempt(authRateKey(ip));
   if (!limited.ok) {
     return { ok: false, error: "rate_limited" };
@@ -76,7 +62,7 @@ async function guardAuthRateLimit(): Promise<AuthActionResult | null> {
 }
 
 async function clearAuthRateLimit(): Promise<void> {
-  const ip = await clientIp();
+  const ip = await getClientIp();
   clearAuthAttempts(authRateKey(ip));
 }
 
@@ -98,6 +84,10 @@ async function signInCredentials(
       return { ok: true };
     }
     if (isCredentialsFailure(error)) {
+      const ip = await getClientIp();
+      if (isAuthRateLimited(authRateKey(ip))) {
+        return { ok: false, error: "rate_limited" };
+      }
       return { ok: false, error: "invalid" };
     }
     console.error("[auth-actions] signIn unexpected", error);
@@ -143,9 +133,6 @@ export async function loginAction(
   loginRaw: string,
   password: string,
 ): Promise<AuthActionResult> {
-  const blocked = await guardAuthRateLimit();
-  if (blocked) return blocked;
-
   const login = normalizeLogin(loginRaw);
   if (!isValidLoginFormat(login) || !password) {
     return { ok: false, error: "invalid" };
@@ -188,10 +175,11 @@ export async function changePasswordAction(
   const passwordHash = await hashPassword(newPassword);
   await prisma.user.update({
     where: { id: userId },
-    data: { passwordHash },
+    data: { passwordHash, passwordChangedAt: new Date() },
   });
 
-  return { ok: true };
+  // Re-issue this device's JWT so it stays past passwordChangedAt.
+  return signInCredentials(user.login, newPassword);
 }
 
 /** Throttled lastSeenAt bump for signed-in visits (safe to call often). */

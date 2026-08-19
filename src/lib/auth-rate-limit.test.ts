@@ -2,8 +2,10 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   AUTH_RATE_LIMIT_MAX,
   AUTH_RATE_LIMIT_WINDOW_MS,
+  authRateKey,
   clearAuthAttempts,
   consumeAuthAttempt,
+  isAuthRateLimited,
   resetAuthRateLimitForTests,
 } from "@/lib/auth-rate-limit";
 
@@ -59,5 +61,21 @@ describe("consumeAuthAttempt", () => {
     }
     expect(consumeAuthAttempt("auth:a", t0 + 1).ok).toBe(false);
     expect(consumeAuthAttempt("auth:b", t0 + 1).ok).toBe(true);
+  });
+});
+
+describe("isAuthRateLimited", () => {
+  it("is false until the window is full, then true without consuming", () => {
+    const key = authRateKey("10.0.0.1");
+    const t0 = 5_000_000;
+    expect(isAuthRateLimited(key, t0)).toBe(false);
+
+    for (let i = 0; i < AUTH_RATE_LIMIT_MAX; i++) {
+      consumeAuthAttempt(key, t0 + i);
+    }
+
+    expect(isAuthRateLimited(key, t0 + AUTH_RATE_LIMIT_MAX)).toBe(true);
+    expect(isAuthRateLimited(key, t0 + AUTH_RATE_LIMIT_MAX)).toBe(true);
+    expect(consumeAuthAttempt(key, t0 + AUTH_RATE_LIMIT_MAX).ok).toBe(false);
   });
 });

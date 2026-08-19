@@ -31,7 +31,7 @@ Do not add a second app stack under the repo (e.g. design dumps stay out of `src
 
 ## Data model
 
-- **User** — `login`, `passwordHash`, `lastSeenAt`, timestamps  
+- **User** — `login`, `passwordHash`, `passwordChangedAt` (null until a change; older JWTs dropped), `lastSeenAt`, timestamps  
 - **Card** — `name`, `day`/`month`/`year`, `sortIndex`, `createdAt`, `updatedAt`; `@@unique([userId, year, month, day])`  
 - **StatEvent** — append-only (`kind`, `createdAt`); guest card creates for `/admin`  
 - Soft cap **100** cards / user (app + merge)  

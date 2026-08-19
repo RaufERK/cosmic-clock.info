@@ -1,7 +1,11 @@
 /**
  * In-memory auth attempt limiter (single Node process / PM2 fork).
- * Key = client IP (or IP+login). Survives within process; resets on restart.
+ * Key = `auth:${ip}` from getClientIp(). Resets on process restart.
  */
+
+export function authRateKey(ip: string): string {
+  return `auth:${ip}`;
+}
 
 export const AUTH_RATE_LIMIT_MAX = 10;
 export const AUTH_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
@@ -46,6 +50,13 @@ export function consumeAuthAttempt(
     ok: true,
     remaining: AUTH_RATE_LIMIT_MAX - bucket.hits.length,
   };
+}
+
+/** True when the next consume would be blocked. Does not record a hit. */
+export function isAuthRateLimited(key: string, now = Date.now()): boolean {
+  const bucket = buckets.get(key);
+  if (!bucket) return false;
+  return prune(bucket.hits, now).length >= AUTH_RATE_LIMIT_MAX;
 }
 
 /** Clear after successful login/register (same IP can try again freely). */

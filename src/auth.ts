@@ -1,7 +1,14 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/lib/db";
+import {
+  authRateKey,
+  clearAuthAttempts,
+  consumeAuthAttempt,
+} from "@/lib/auth-rate-limit";
+import { getClientIp } from "@/lib/client-ip";
 import { verifyPassword } from "@/lib/password";
+import { isJwtInvalidatedByPasswordChange } from "@/lib/session-invalidation";
 import { normalizeLogin, touchLastSeen } from "@/lib/user-activity";
 
 const SESSION_MAX_AGE_SEC = 30 * 24 * 60 * 60; // ~30 days
@@ -33,6 +40,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       authorize: async (credentials) => {
+        const ip = await getClientIp();
+        const rateKey = authRateKey(ip);
+        const limited = consumeAuthAttempt(rateKey);
+        if (!limited.ok) return null;
+
         const loginRaw = credentials?.login;
         const password = credentials?.password;
         if (typeof loginRaw !== "string" || typeof password !== "string") {
@@ -48,6 +60,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const valid = await verifyPassword(password, user.passwordHash);
         if (!valid) return null;
 
+        clearAuthAttempts(rateKey);
         await touchLastSeen(user.id);
 
         return { id: user.id, login: user.login };
@@ -62,20 +75,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return token;
       }
 
-      // Legacy JWT (pre-login field) or wiped user: repair once, or drop session.
-      if (token.sub && typeof token.login !== "string") {
-        try {
-          const dbUser = await prisma.user.findUnique({
-            where: { id: token.sub },
-            select: { login: true },
-          });
-          if (!dbUser) {
-            return {};
-          }
-          token.login = dbUser.login;
-        } catch {
+      if (!token.sub) return {};
+
+      try {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { login: true, passwordChangedAt: true },
+        });
+        if (!dbUser) {
           return {};
         }
+        if (
+          isJwtInvalidatedByPasswordChange(
+            token.iat,
+            dbUser.passwordChangedAt,
+          )
+        ) {
+          return {};
+        }
+        token.login = dbUser.login;
+      } catch {
+        return token;
       }
 
       return token;
