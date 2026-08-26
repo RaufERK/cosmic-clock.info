@@ -2,12 +2,17 @@ const DEPLOY_HOST = 'amster_app'
 const DEPLOY_USER = 'appuser'
 const DEPLOY_PATH = '/home/appuser/apps/cosmic-clock'
 const APP_PORT = 3060
+const NODE_VERSION = '24.14.1'
+const NVM_BIN = `/home/${DEPLOY_USER}/.nvm/versions/node/v${NODE_VERSION}/bin`
+const NODE_BIN = `${NVM_BIN}/node`
+const PM2_BIN = `${NVM_BIN}/pm2`
 
 module.exports = {
   apps: [
     {
       name: 'cosmic-clock',
       cwd: `${DEPLOY_PATH}/source`,
+      interpreter: NODE_BIN,
       script: 'node_modules/next/dist/bin/next',
       args: 'start',
       instances: 1,
@@ -37,14 +42,14 @@ module.exports = {
       'pre-deploy-local': '',
       'post-deploy': [
         'export NODE_ENV=production',
-        'source ~/.nvm/nvm.sh && nvm use 24',
+        `source ~/.nvm/nvm.sh && nvm use ${NODE_VERSION}`,
         `ln -sfn ${DEPLOY_PATH}/shared/.env ./.env`,
         'npm ci --include=dev',
         'npx prisma migrate deploy',
         'npm run users:prune-stale',
         'npm run build',
-        'pm2 startOrReload ecosystem.config.cjs --env production',
-        'pm2 save',
+        `${PM2_BIN} startOrReload ecosystem.config.cjs --env production`,
+        `${PM2_BIN} save`,
       ].join(' && '),
       env: {
         NODE_ENV: 'production',
