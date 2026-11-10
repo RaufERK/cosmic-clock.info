@@ -20,7 +20,25 @@ Alias is **`amster_app`** (underscore).
 | PM2 | port **3060**, bind `127.0.0.1` |
 | Site | https://cosmic-clock.info |
 
-Deploy: `npm run deploy` (migrate + prune stale users).
+Deploy: `npm run deploy` (migrate + prune stale users + `scripts/deploy-release.sh`).
+
+`deploy-release.sh` builds into `.next-build`, swaps it into `.next`, reloads PM2 and polls `GET /api/health` (app + DB). On failure it restores `.next-prev` and exits non-zero. The previous build stays in `.next-prev`. Migrations run **before** the swap, so keep them backward compatible with the previous build.
+
+Uptime monitor target: `https://cosmic-clock.info/api/health` (200 `{"ok":true}`, 503 when the DB does not answer).
+
+## Backups
+
+`appuser` cron, 03:30 daily: `~/bin/backup-db.sh` → `~/backups/db/{cosmic_clock,umami}-<stamp>.dump` (`pg_dump -Fc`, validated with `pg_restore --list`, 30 days retention, log `~/logs/backup-db.log`). Restore check (as root, via stdin so `postgres` can read it):
+
+```bash
+createdb restore_test && cat dump | sudo -u postgres pg_restore --no-owner -d restore_test
+```
+
+Dumps live on the same VPS: copy them off-server too.
+
+## Logs
+
+`/etc/logrotate.d/appuser-apps` rotates `~/logs/*.log` and `~/.pm2/logs/*.log` weekly (4 kept, `copytruncate`, `maxsize 50M`).
 
 ## PostgreSQL
 

@@ -47,9 +47,7 @@ module.exports = {
         'npm ci --include=dev',
         'npx prisma migrate deploy',
         'npm run users:prune-stale',
-        'npm run build',
-        `${PM2_BIN} startOrReload ecosystem.config.cjs --env production`,
-        `${PM2_BIN} save`,
+        `bash scripts/deploy-release.sh ${PM2_BIN}`,
       ].join(' && '),
       env: {
         NODE_ENV: 'production',
