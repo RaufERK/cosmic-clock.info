@@ -2,6 +2,9 @@
   "name": "cosmic-clock",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=24.22.1 <25"
+  },
   "scripts": {
     "audit:prod": "npm audit --omit=dev",
     "dev": "next dev",
