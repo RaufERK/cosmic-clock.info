@@ -65,17 +65,9 @@ npm run db:migrate
 
 Separate PG DB/role **`umami`**. Site needs `NEXT_PUBLIC_UMAMI_WEBSITE_ID` + `NEXT_PUBLIC_UMAMI_SCRIPT_URL=/ua.js`.
 
-## Sentry (errors + tracing)
+## Error tracking
 
-In `shared/.env` (and local `.env`):
-
-```text
-NEXT_PUBLIC_SENTRY_DSN=https://…@….ingest.de.sentry.io/…
-SENTRY_DSN=https://…@….ingest.de.sentry.io/…
-```
-
-Optional source maps on build: `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`.  
-Tunnel: `/monitoring` (excluded from locale proxy). Local verify: `ALLOW_SENTRY_TEST=1` then `GET /api/sentry-test`.
+Sentry was removed (Nov 2026). Errors go to PM2 logs (`~/logs/cosmic-clock-error.log`); liveness is `GET /api/health`.
 
 ## Admin stats (`/admin`)
 

@@ -23,7 +23,9 @@ reload_app() {
   "$PM2_BIN" startOrReload ecosystem.config.cjs --env production
 }
 
-rm -rf .next-build
+# Generated route types of the previous build are matched by tsconfig and break the type check
+# when a route was removed. They are not used at runtime.
+rm -rf .next/types .next/dev/types .next-build
 NEXT_DIST_DIR=.next-build npm run build
 
 rm -rf .next-prev

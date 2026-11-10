@@ -20,7 +20,7 @@ src/app/[locale]/   public routes (next-intl)
 src/app/admin/      operator stats (no locale prefix)
 src/components/     CosmicApp, CosmicClock, CardForm, auth UI, admin/
 src/lib/            math, cards, guest-cards, card-actions, auth, admin-*
-src/proxy.ts        next-intl middleware (excludes api, admin, monitoring)
+src/proxy.ts        next-intl middleware (excludes api, admin)
 messages/           locale JSON
 prisma/             schema + migrations
 deploy/nginx/       site configs

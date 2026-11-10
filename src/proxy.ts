@@ -4,6 +4,6 @@ import { routing } from "./i18n/routing";
 export default createMiddleware(routing);
 
 export const config = {
-  // Exclude Sentry tunnel, admin, API, Next internals, and static files
-  matcher: "/((?!api|trpc|monitoring|admin|_next|_vercel|.*\\..*).*)",
+  // Exclude admin, API, Next internals, and static files
+  matcher: "/((?!api|trpc|admin|_next|_vercel|.*\\..*).*)",
 };
