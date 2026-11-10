@@ -67,7 +67,13 @@ Separate PG DB/role **`umami`**. Site needs `NEXT_PUBLIC_UMAMI_WEBSITE_ID` + `NE
 
 ## Error tracking
 
-Sentry was removed (Nov 2026). Errors go to PM2 logs (`~/logs/cosmic-clock-error.log`); liveness is `GET /api/health`.
+Sentry was removed (Nov 2026). Liveness is `GET /api/health`.
+
+Server errors: `src/instrumentation.ts` → `onRequestError` → `src/lib/error-alert.ts`.
+- One JSON line per error in `~/logs/cosmic-clock-error.log` (`"source":"request"`): no headers, bodies, query strings, or local variables.
+- Telegram alert (plain text) via a dedicated bot: `TELEGRAM_ALERT_BOT_TOKEN` + `TELEGRAM_ALERT_CHAT_ID` in `shared/.env` (the private chat with the owner). If either is missing, only the log line is written.
+- Dedupe 15 min per error, max 10 alerts/hour per process. Stale Server Action errors are log-only.
+- Outgoing `sendMessage` only. Never call `getUpdates` / `setWebhook` with this token.
 
 ## Admin stats (`/admin`)
 
