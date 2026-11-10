@@ -28,13 +28,13 @@ Uptime monitor target: `https://cosmic-clock.info/api/health` (200 `{"ok":true}`
 
 ## Backups
 
-`appuser` cron, 03:30 daily: `~/bin/backup-db.sh` → `~/backups/db/{cosmic_clock,umami}-<stamp>.dump` (`pg_dump -Fc`, validated with `pg_restore --list`, 30 days retention, log `~/logs/backup-db.log`). Restore check (as root, via stdin so `postgres` can read it):
+systemd timer `db-backup.timer` (root unit, runs as `appuser`), `03:30 Europe/Moscow` daily with `Persistent=true` (catches up after downtime; the zone is in the schedule, so DST or a changed system timezone cannot shift it): `~/bin/backup-db.sh` → `~/backups/db/{cosmic_clock,umami}-<stamp>.dump` (`pg_dump -Fc`, validated with `pg_restore --list`, 30 days retention, log `~/logs/backup-db.log`). Restore check (as root, via stdin so `postgres` can read it):
 
 ```bash
 createdb restore_test && cat dump | sudo -u postgres pg_restore --no-owner -d restore_test
 ```
 
-Dumps live on the same VPS: copy them off-server too.
+Off-server copy: the Moscow VPS **pulls** them (`appuser` cron with `CRON_TZ=Europe/Moscow`, 04:15 and a retry at 10:15, `~/bin/pull-amster-backups.sh` → `~/backups/amsterdam/db`, 90 days retention, no `--delete`, log `~/logs/pull-amster-backups.log`). The script fails loudly if the newest dump is older than 30 h or `pg_restore --list` fails. Moscow uses a dedicated key `~/.ssh/id_ed25519_backup_pull`; on Amsterdam its `authorized_keys` line is `from="155.212.174.133",command="/usr/bin/rrsync -ro /home/appuser/backups/db",restrict` (read-only, that directory only, no shell). Amsterdam → Moscow SSH is blocked, so there is no key from this host to Moscow.
 
 ## Logs
 
