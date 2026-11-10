@@ -20,7 +20,7 @@ wait_healthy() {
 }
 
 reload_app() {
-  "$PM2_BIN" startOrReload ecosystem.config.cjs --env production
+  "$PM2_BIN" startOrReload ecosystem.config.cjs --env production --update-env
 }
 
 # Generated route types of the previous build are matched by tsconfig and break the type check
