@@ -28,7 +28,7 @@ Uptime monitor target: `https://cosmic-clock.info/api/health` (200 `{"ok":true}`
 
 ## Backups
 
-systemd timer `db-backup.timer` (root unit, runs as `appuser`), `03:30 Europe/Moscow` daily with `Persistent=true` (catches up after downtime; the zone is in the schedule, so DST or a changed system timezone cannot shift it): `~/bin/backup-db.sh` → `~/backups/db/{cosmic_clock,umami}-<stamp>.dump` (`pg_dump -Fc`, validated with `pg_restore --list`, 30 days retention, log `~/logs/backup-db.log`). Restore check (as root, via stdin so `postgres` can read it):
+systemd timer `db-backup.timer` (root unit, runs as `appuser`), `03:30 Europe/Moscow` daily with `Persistent=true` (catches up after downtime; the zone is in the schedule, so DST or a changed system timezone cannot shift it): `~/bin/backup-db.sh` → `~/backups/db/cosmic_clock-<stamp>.dump` (`pg_dump -Fc`, validated with `pg_restore --list`, 30 days retention, log `~/logs/backup-db.log`). Restore check (as root, via stdin so `postgres` can read it):
 
 ```bash
 createdb restore_test && cat dump | sudo -u postgres pg_restore --no-owner -d restore_test
@@ -54,16 +54,17 @@ docker compose up -d
 npm run db:migrate
 ```
 
-## Umami (same VPS, separate repo)
+## Umami (hosted on Moscow)
 
 | | |
 |--|--|
-| App | `/home/appuser/apps/umami` · env in `umami-shared/` |
-| PM2 | `umami` → `127.0.0.1:3030` |
-| Tracker | first-party `/ua.js` + `/api/send` on cosmic-clock.info |
-| Dashboard | `https://stats.cosmic-clock.info` |
+| Instance | `https://analytics.amasters.ru` (Moscow, not part of this VPS) |
+| Tracker | first-party `/ua.js` + `/api/send` on cosmic-clock.info; nginx proxies both to `analytics.amasters.ru` (variable upstream + `resolver`, see `deploy/nginx/cosmic-clock.info.conf`) |
+| Dashboard | `https://analytics.amasters.ru` |
 
-Separate PG DB/role **`umami`**. Site needs `NEXT_PUBLIC_UMAMI_WEBSITE_ID` + `NEXT_PUBLIC_UMAMI_SCRIPT_URL=/ua.js`.
+Site needs `NEXT_PUBLIC_UMAMI_WEBSITE_ID` (the website id from the Moscow instance) + `NEXT_PUBLIC_UMAMI_SCRIPT_URL=/ua.js`; both are baked in at build time, so a change needs a rebuild.
+
+**Old Amsterdam Umami (retired 2026-11-11).** The statistics moved to Moscow on 2026-11-11. The old instance (PM2 `umami`, `:3030`, `stats.cosmic-clock.info`, DB/role `umami`) is stopped, removed from nginx and from `backup-db.sh`. Still on disk: `/home/appuser/apps/umami` (1.9 GB, PM2 entry stopped), DB `umami`, the last dump `~/backups/umami-final/umami-final-20261111-210840.dump` (+ `.sha256`, outside rotation). Planned cleanup after 2-4 weeks: `pm2 delete umami` + `pm2 save`, delete `apps/umami` and `umami-shared`, `DROP DATABASE umami` and `DROP ROLE umami`, DNS record `stats`.
 
 ## Error tracking
 

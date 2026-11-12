@@ -2,7 +2,7 @@
 
 Internal operator page. Not a product surface. English UI only (not `messages/*.json`). No public links. No Umami on this layout.
 
-**Live:** `https://cosmic-clock.info/admin` (local: `http://localhost:3000/admin`). Same Next.js app, not a subdomain (`stats.` is Umami).
+**Live:** `https://cosmic-clock.info/admin` (local: `http://localhost:3000/admin`). Same Next.js app, not a subdomain.
 
 ## Access
 
