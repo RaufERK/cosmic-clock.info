@@ -16,7 +16,7 @@ Full detail: `docs/INFRA.md`.
 
 ## Databases
 
-- **Local:** `docker compose up -d` → Postgres 16 on host port **5433**  
+- **Local:** `docker compose up -d` → Postgres 18 on host port **5433**  
   `DATABASE_URL=postgresql://cosmic_clock:cosmic_clock@127.0.0.1:5433/cosmic_clock`
-- **Server:** system PostgreSQL 14 on `127.0.0.1:5432` (not public); role/DB `cosmic_clock` (secrets in `shared/.env` only). Analytics: Umami runs on Moscow (`analytics.amasters.ru`); the old Amsterdam instance is retired — see `docs/INFRA.md`.
+- **Server:** system PostgreSQL 18 (PGDG) on `127.0.0.1:5432` (not public; old 14 cluster stopped on 5433 until 2026-12-12, see `docs/INFRA.md`); role/DB `cosmic_clock` (secrets in `shared/.env` only). Analytics: Umami runs on Moscow (`analytics.amasters.ru`); the old Amsterdam instance is retired — see `docs/INFRA.md`.
 - Never commit real production secrets.

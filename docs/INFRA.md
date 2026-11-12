@@ -34,7 +34,7 @@ systemd timer `db-backup.timer` (root unit, runs as `appuser`), `03:30 Europe/Mo
 createdb restore_test && cat dump | sudo -u postgres pg_restore --no-owner -d restore_test
 ```
 
-Off-server copy: the Moscow VPS **pulls** them (`appuser` cron with `CRON_TZ=Europe/Moscow`, 04:15 and a retry at 10:15, `~/bin/pull-amster-backups.sh` → `~/backups/amsterdam/db`, 90 days retention, no `--delete`, log `~/logs/pull-amster-backups.log`). The script fails loudly if the newest dump is older than 30 h or `pg_restore --list` fails. Moscow uses a dedicated key `~/.ssh/id_ed25519_backup_pull`; on Amsterdam its `authorized_keys` line is `from="155.212.174.133",command="/usr/bin/rrsync -ro /home/appuser/backups/db",restrict` (read-only, that directory only, no shell). Amsterdam → Moscow SSH is blocked, so there is no key from this host to Moscow.
+Off-server copy: the Moscow VPS **pulls** them (`appuser` cron with `CRON_TZ=Europe/Moscow`, 04:15 and a retry at 10:15, `~/bin/pull-amster-backups.sh` → `~/backups/amsterdam/db`, 90 days retention, no `--delete`, log `~/logs/pull-amster-backups.log`). The script fails loudly if the newest dump is older than 30 h or `pg_restore --list` (newest installed client, 18) fails. Moscow uses a dedicated key `~/.ssh/id_ed25519_backup_pull`; on Amsterdam its `authorized_keys` line is `from="155.212.174.133",command="/usr/bin/rrsync -ro /home/appuser/backups/db",restrict` (read-only, that directory only, no shell). Amsterdam → Moscow SSH is blocked, so there is no key from this host to Moscow.
 
 ## Logs
 
@@ -44,8 +44,8 @@ Off-server copy: the Moscow VPS **pulls** them (`appuser` cron with `CRON_TZ=Eur
 
 | Env | Where |
 |-----|--------|
-| Production | System PG **14** on `127.0.0.1:5432`; DB/role `cosmic_clock` |
-| Local | Docker Compose `postgres:16` on host **5433** |
+| Production | System PG **18** (PGDG packages, cluster `18/main`) on `127.0.0.1:5432`; DB/role `cosmic_clock`; locale `C.UTF-8`, data checksums on |
+| Local | Docker Compose `postgres:18` on host **5433** |
 
 ```bash
 # local
@@ -53,6 +53,18 @@ docker compose up -d
 # DATABASE_URL=postgresql://cosmic_clock:cosmic_clock@127.0.0.1:5433/cosmic_clock
 npm run db:migrate
 ```
+
+Local volume: the compose file uses a new volume `cosmic_clock_pg18data` (the PG 18 image stores data under `/var/lib/postgresql/18/docker`, and a PG 16 volume cannot be opened by it). Old local data stays in `cosmic_clock_pgdata`; remove it with `docker volume rm cosmic-clock_cosmic_clock_pgdata` once it is not needed.
+
+### Upgrade 14 → 18 (2026-11-12)
+
+Dump/restore into a fresh cluster next to the old one (rehearsal on port 5433 first, then cutover; ~10 s downtime: stop PM2 app, final dump, restore, swap ports, start app). PG 14 reached end of life on 2026-11-12.
+
+- **Packages:** PGDG apt repo (`/etc/apt/sources.list.d/pgdg.sources`). `/etc/apt/preferences.d/pgdg-low-priority` keeps everything from PGDG at priority 100 and allows only `postgresql-18`, `postgresql-client-18`, `postgresql-common`, `postgresql-client-common`, `libpq5` (priority 600), so a routine `apt upgrade` cannot swap Ubuntu's `postgresql-14` for a PGDG build.
+- **Old cluster:** `14/main` is kept **stopped** on port **5433** with `start.conf` = `manual` (does not start on boot). Remove after **2026-12-12** if nothing went wrong: `pg_dropcluster 14 main --stop`, `apt purge postgresql-14 postgresql-client-14`. The pre-cutover dumps (custom + plain PG14 SQL) are in `/root/pg-migrate-20261112/` (mode 600); delete them together with the old cluster.
+- **Dropped on 2026-11-12:** DB/role `umami` (last dump kept in `~/backups/umami-final/`) and DB/role `spokenword` (project lives on Moscow; last dump `~/backups/spokenword-final/spokenword-final-20261112-155916.dump` + `.sha256`, outside rotation).
+- **Clients:** `pg_wrapper` follows the cluster on port 5432, so `appuser` now gets `pg_dump`/`pg_restore` 18. Dumps are archive format 1.16 and contain optimizer statistics (PG 18 default): restore them into PG 18 only. Moscow has the PG 18 client for this reason (its `pull-amster-backups.sh` validates with the newest installed `pg_restore`); Moscow's own dumps still use client 16.
+- **Rollback (only while `14/main` exists):** stop the app, `systemctl stop postgresql@18-main`, swap the `port =` lines in `/etc/postgresql/{14,18}/main/postgresql.conf` (14 → 5432, 18 → 5433), set `start.conf` of 14 back to `auto`, `systemctl start postgresql@14-main`, start the app. Anything written after the cutover exists only in 18: dump it first (`pg_dump -Fp` from 18) and re-apply on 14.
 
 ## Umami (hosted on Moscow)
 
@@ -64,7 +76,7 @@ npm run db:migrate
 
 Site needs `NEXT_PUBLIC_UMAMI_WEBSITE_ID` (the website id from the Moscow instance) + `NEXT_PUBLIC_UMAMI_SCRIPT_URL=/ua.js`; both are baked in at build time, so a change needs a rebuild.
 
-**Old Amsterdam Umami (retired 2026-11-11).** The statistics moved to Moscow on 2026-11-11. The old instance (PM2 `umami`, `:3030`, `stats.cosmic-clock.info`, DB/role `umami`) is stopped, removed from nginx and from `backup-db.sh`. Still on disk: `/home/appuser/apps/umami` (1.9 GB, PM2 entry stopped), DB `umami`, the last dump `~/backups/umami-final/umami-final-20261111-210840.dump` (+ `.sha256`, outside rotation). Planned cleanup after 2-4 weeks: `pm2 delete umami` + `pm2 save`, delete `apps/umami` and `umami-shared`, `DROP DATABASE umami` and `DROP ROLE umami`, DNS record `stats`.
+**Old Amsterdam Umami (retired 2026-11-11).** The statistics moved to Moscow on 2026-11-11. The old instance (PM2 `umami`, `:3030`, `stats.cosmic-clock.info`, DB/role `umami`) is stopped, removed from nginx and from `backup-db.sh`. The DB/role `umami` were dropped on 2026-11-12 (during the PG 18 upgrade). Still on disk: `/home/appuser/apps/umami` (1.9 GB, PM2 entry stopped), the last dump `~/backups/umami-final/umami-final-20261111-210840.dump` (+ `.sha256`, outside rotation). Planned cleanup after 2-4 weeks: `pm2 delete umami` + `pm2 save`, delete `apps/umami` and `umami-shared`, DNS record `stats`.
 
 ## Error tracking
 
